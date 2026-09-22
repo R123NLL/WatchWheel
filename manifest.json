@@ -6,6 +6,7 @@
     "overview": "A configurable watch wheel for Jellyfin movies and TV series with user-specific filtering and playback progress support.",
     "owner": "Watch Wheel Contributors",
     "category": "General",
+    "imageUrl": "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
     "versions": [
       {
         "version": "1.0.2.0",
