@@ -4,6 +4,10 @@
 
 Watch Wheel is a Jellyfin plugin that helps a signed-in user choose what to watch from media they can actually access. It builds a wheel from unwatched movies and TV series, understands TV progress so a series points to the next episode, and keeps each user's browser preferences separate.
 
+## Preview
+
+<img width="1440" height="1476" alt="image" src="https://github.com/user-attachments/assets/fdbdec52-c5d3-4d49-adec-23544bb95ccb" />
+
 ## Features
 
 - Movies, TV series, or both.
