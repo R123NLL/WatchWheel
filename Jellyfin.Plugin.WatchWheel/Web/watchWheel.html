@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Watch Wheel</title>
+</head>
+<body>
+<div id="WatchWheelPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div data-role="content">
+        <div class="content-primary watchWheelShell">
+            <div class="watchWheelHeader">
+                <div><h1><span class="cinemaMark" aria-hidden="true">◉</span> WatchWheel</h1></div>
+                <button id="wwSound" type="button" class="raised emby-button wwSound" aria-pressed="true" aria-label="Wheel sound effects" disabled>Sound on</button>
+                <div class="candidateBadge"><span id="candidateCount">0</span><span>choices</span></div>
+            </div>
+            <section class="filterPanel" aria-label="Wheel filters">
+                <div class="wwMediaTabs" role="group" aria-label="Media type">
+                    <button id="wwTypeAll" type="button" aria-pressed="true">All</button>
+                    <button id="wwTypeMovies" type="button" aria-pressed="false">Movies</button>
+                    <button id="wwTypeSeries" type="button" aria-pressed="false">TV Shows</button>
+                </div>
+                <div class="filterField hidden">
+                    <label for="wwType">Media Type</label>
+                    <select id="wwType" class="emby-select">
+                        <option value="both">Movies + TV</option>
+                        <option value="movie">Movies Only</option>
+                        <option value="series">TV Shows Only</option>
+                    </select>
+                </div>
+                <div class="filterField">
+                    <label for="wwLibrary">Library</label>
+                    <select id="wwLibrary" class="emby-select"><option value="">All libraries</option></select>
+                </div>
+                <div class="filterField">
+                    <label for="wwGenre">Genre</label>
+                    <select id="wwGenre" class="emby-select"><option value="">Any Genre</option></select>
+                </div>
+                <button id="wwApplyFilters" type="button" class="raised emby-button button-submit">Refresh Wheel</button>
+                <details class="wwAdvanced">
+                    <summary id="wwMoreFiltersSummary">More filters</summary>
+                    <div class="wwAdvancedGrid">
+                <div class="filterField">
+                    <label for="wwWatchStatus">Watch Status</label>
+                    <select id="wwWatchStatus" class="emby-select"
+                        title="For TV, In progress includes shows with any watched or partially watched regular episode.">
+                        <option value="all">All unwatched</option>
+                        <option value="not-started">Not started</option>
+                        <option value="in-progress">In progress</option>
+                    </select>
+                </div>
+                <div class="filterField filterCheckbox">
+                    <label><input id="wwAvoidRecent" type="checkbox"><span>Avoid recent picks</span></label>
+                </div>
+                <button id="wwResetFilters" type="button" class="raised emby-button">Reset Filters</button>
+
+                <div class="filterField">
+                    <label for="wwDecade">Decade</label>
+                    <select id="wwDecade" class="emby-select"><option value="">Any Decade</option></select>
+                </div>
+                <div class="filterField">
+                    <label for="wwRuntime">Runtime</label>
+                    <select id="wwRuntime" class="emby-select" aria-describedby="wwRuntimeHelp">
+                        <option value="">Any runtime</option>
+                        <option value="30">Up to 30 minutes</option>
+                        <option value="60">Up to 1 hour</option>
+                        <option value="90">Up to 90 minutes</option>
+                        <option value="120">Up to 2 hours</option>
+                        <option value="180">Up to 3 hours</option>
+                    </select>
+                </div>
+                <div class="filterField">
+                    <label for="wwRating">Minimum rating</label>
+                    <select id="wwRating" class="emby-select" aria-describedby="wwRatingHelp">
+                        <option value="">Any rating</option>
+                        <option value="6">6+ / 10</option>
+                        <option value="7">7+ / 10</option>
+                        <option value="8">8+ / 10</option>
+                    </select>
+                </div>
+                <div class="filterField">
+                    <label for="wwYear">Release year</label>
+                    <select id="wwYear" class="emby-select" aria-describedby="wwYearHelp"><option value="">Any year</option></select>
+                </div>
+                    </div>
+                    <details class="wwHelp">
+                        <summary>Filter help</summary>
+                        <p id="wwRuntimeHelp">Runtime uses the full movie or next episode length. Unknown runtimes require Any runtime.</p>
+                        <p id="wwRatingHelp">Ratings come from Jellyfin; TV uses the show rating. Unrated titles require Any rating.</p>
+                        <p id="wwYearHelp">Release year uses the movie or show's year, not the next episode's air date. Year and decade filters both apply.</p>
+                        <p>Settings and recent picks are saved for your account in this browser. Recent picks track spins, not watched history.</p>
+                    </details>
+                </details>
+            </section>
+            <p id="wwFilterNote" class="wwFilterNote" role="status"></p>
+            <p id="wwStorageNote" class="wwStorageNote" role="status"></p>
+            <div id="wwMessage" class="watchWheelMessage" role="status" aria-live="polite"></div>
+            <div class="cinemaLayout">
+            <section class="wheelSection" aria-label="Watch wheel">
+                <div class="wheelContainer">
+                    <div class="wheelPointer" aria-hidden="true"></div>
+                    <canvas id="watchWheelCanvas" width="800" height="800" aria-label="Wheel of movie and TV choices"></canvas>
+                    <button id="wwSpin" type="button" class="spinButton" disabled>SPIN</button>
+                </div>
+            </section>
+            <aside class="cinemaSidebar" aria-label="Your pick and titles">
+            <div id="wwWinnerEmpty" class="cinemaEmpty"><span aria-hidden="true">✦</span><h2>Your next movie night</h2><p>Spin to find your next watch.</p></div>
+            <section id="winnerCard" class="winnerCard hidden" aria-labelledby="winnerTitle">
+                <div class="winnerPosterWrapper">
+                    <span id="winnerPosterFallback" class="winnerPosterFallback" aria-hidden="true"></span>
+                    <img id="winnerPoster" class="winnerPoster" alt="">
+                </div>
+                <div class="winnerInfo">
+                    <div class="winnerEyebrow">YOUR PICK</div>
+                    <div id="winnerSeries" class="winnerSeries"></div>
+                    <h2 id="winnerTitle"></h2>
+                    <div id="winnerEpisode" class="winnerEpisode"></div>
+                    <div id="winnerMeta" class="winnerMeta"></div>
+                    <div id="winnerResume" class="winnerResume"></div>
+                    <progress id="winnerProgress" class="winnerProgress hidden" max="100" value="0" aria-label="Playback progress"></progress>
+                    <div id="wwPlaybackContainer" is="emby-itemscontainer" class="winnerPrimaryAction" data-multiselect="false" data-contextmenu="false">
+                        <button id="wwPlay" type="button" class="raised emby-button button-submit">Play</button>
+                    </div>
+                    <p id="wwPlaybackMessage" class="wwPlaybackMessage" role="status" aria-live="polite"></p>
+                    <div class="winnerActions">
+                        <button id="wwOpen" type="button" class="raised emby-button">Details</button>
+                        <button id="wwEpisode" type="button" class="raised emby-button hidden">Episode Details</button>
+                        <button id="wwRemove" type="button" class="raised emby-button">Remove from Wheel</button>
+                        <button id="wwAgain" type="button" class="raised emby-button">Spin Again</button>
+                    </div>
+                    <details id="winnerDescription" class="winnerDescription">
+                        <summary id="winnerDescriptionLabel">Overview</summary>
+                        <div id="winnerGenres" class="winnerGenres"></div>
+                        <p id="winnerOverview"></p>
+                    </details>
+                </div>
+            </section>
+            <section class="cinemaLibrary" aria-label="Titles and recent picks">
+                <div class="wwBrowseTabs" role="tablist" aria-label="Browse titles">
+                    <button id="wwChoicesTab" type="button" role="tab" aria-selected="true" aria-controls="wwChoicesPanel" tabindex="0">Choices</button>
+                    <button id="wwRecentTab" type="button" role="tab" aria-selected="false" aria-controls="wwRecentPanel" tabindex="-1">Recent picks</button>
+                </div>
+            <section id="wwChoicesPanel" class="wwCandidates" role="tabpanel" aria-labelledby="wwChoicesTab" tabindex="0">
+                <h3 id="wwCandidatesHeading" class="cinemaVisuallyHidden">Browse titles</h3>
+                <div class="wwCandidateHeader">
+                    <button id="wwRestoreRemoved" type="button" class="raised emby-button" disabled>Restore removed (0)</button>
+                </div>
+                <p id="wwCandidateHelp">Search leaves the wheel unchanged. Removed titles return on restore or refresh.</p>
+                <div class="wwCandidateSearchBar">
+                    <label for="wwCandidateSearch">Search titles</label>
+                    <input id="wwCandidateSearch" type="search" class="emby-input" placeholder="Movie or series name" aria-describedby="wwCandidateHelp" autocomplete="off">
+                    <button id="wwCandidateClear" type="button" class="raised emby-button">Clear search</button>
+                </div>
+                <p id="wwCandidateSummary" role="status" aria-live="polite"></p>
+                <p id="wwCandidateEmpty"></p>
+                <ul id="wwCandidateList" class="wwCandidateList"></ul>
+                <nav class="wwCandidatePagination" aria-label="Candidate list pages">
+                    <button id="wwCandidatePrevious" type="button" class="raised emby-button">Previous</button>
+                    <button id="wwCandidateNext" type="button" class="raised emby-button">Next</button>
+                </nav>
+            </section>
+            <section id="wwRecentPanel" class="wwHistory hidden" role="tabpanel" aria-labelledby="wwRecentTab" tabindex="0">
+                <h3 id="wwHistoryHeading" class="cinemaVisuallyHidden">Recent picks</h3>
+                <div class="wwHistoryHeader">
+                    <p>Last 10 spins</p>
+                    <button id="wwClearHistory" type="button" class="raised emby-button">Clear History</button>
+                </div>
+                <p id="wwHistoryEmpty">Your picks will appear here after you spin.</p>
+                <ol id="wwHistoryList" class="wwHistoryList"></ol>
+            </section>
+            </section>
+            </aside>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var page = document.getElementById('WatchWheelPage');
+            var version = 'watchwheel-1.0.2.0';
+            var cssId = 'watchWheelPluginCss';
+            var css = document.getElementById(cssId);
+            if (!css) {
+                css = document.createElement('link');
+                css.id = cssId;
+                css.rel = 'stylesheet';
+                document.head.appendChild(css);
+            }
+            css.href = 'configurationpage?name=watchWheel.css&v=' + version;
+            function initialize() {
+                if (window.WatchWheelApp) window.WatchWheelApp.init(page);
+            }
+            if (window.WatchWheelApp && window.watchWheelLoadedVersion === version) {
+                initialize();
+                return;
+            }
+            if (!window.watchWheelAssetLoad || window.watchWheelAssetVersion !== version) {
+                window.watchWheelAssetVersion = version;
+                window.watchWheelAssetLoad = new Promise(function (resolve, reject) {
+                    var script = document.createElement('script');
+                    script.src = 'configurationpage?name=watchWheel.js&v=' + version;
+                    script.onload = function () {
+                        window.watchWheelLoadedVersion = version;
+                        resolve();
+                    };
+                    script.onerror = function () {
+                        window.watchWheelAssetLoad = null;
+                        reject(new Error('Watch Wheel script failed to load.'));
+                    };
+                    document.head.appendChild(script);
+                });
+            }
+            window.watchWheelAssetLoad.then(initialize).catch(function (error) {
+                console.error(error);
+                var message = page && page.querySelector('#wwMessage');
+                if (message) message.textContent = 'Watch Wheel assets could not load. Reload the page.';
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

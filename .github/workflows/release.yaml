@@ -1,0 +1,50 @@
+name: Publish WatchWheel Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate tag and metadata
+        id: metadata
+        shell: pwsh
+        run: |
+          $release = Get-Content ./release.json -Raw | ConvertFrom-Json
+          $expectedTag = "v$($release.version)"
+          if ('${{ github.ref_name }}' -ne $expectedTag) {
+            throw "Tag '${{ github.ref_name }}' does not match release.json version '$($release.version)'. Expected '$expectedTag'."
+          }
+          "version=$($release.version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Build release package
+        shell: pwsh
+        run: ./scripts/Build-Release.ps1
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        shell: bash
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "artifacts/WatchWheel-${VERSION}.zip" \
+            "artifacts/WatchWheel-${VERSION}.zip.sha256" \
+            --title "Watch Wheel ${VERSION}" \
+            --notes-file RELEASE_NOTES.md

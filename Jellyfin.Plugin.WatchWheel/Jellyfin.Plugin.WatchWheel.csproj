@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  <TargetFramework>net9.0</TargetFramework>
+
+  <RootNamespace>Jellyfin.Plugin.WatchWheel</RootNamespace>
+  <AssemblyName>Jellyfin.Plugin.WatchWheel</AssemblyName>
+
+
+  <Authors>Watch Wheel Contributors</Authors>
+  <Description>Spin a wheel to choose something unwatched from your Jellyfin library.</Description>
+
+  <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <Nullable>enable</Nullable>
+  <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+</PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Do not embed developer-machine PDB paths in the distributable DLL. -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Controller" Version="10.11.11">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Jellyfin.Model" Version="10.11.11">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SerilogAnalyzer" Version="0.15.0" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
+    <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+  <None Remove="Configuration\configPage.html" />
+  <EmbeddedResource Include="Configuration\configPage.html" />
+
+  <None Remove="Web\watchWheel.html" />
+  <EmbeddedResource Include="Web\watchWheel.html" />
+
+  <None Remove="Web\watchWheel.js" />
+  <EmbeddedResource Include="Web\watchWheel.js" />
+
+  <None Remove="Web\watchWheel.css" />
+  <EmbeddedResource Include="Web\watchWheel.css" />
+</ItemGroup>
+
+</Project>

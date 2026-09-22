@@ -1,0 +1,17 @@
+---
+name: "Watch Wheel"
+guid: "4c6f5316-58f6-4d90-87cc-b8ca47b40a01"
+version: "1.0.2.0"
+targetAbi: "10.11.11.0"
+framework: "net9.0"
+overview: "Choose an unwatched movie or the next episode with a spinning wheel."
+description: >
+  User-aware movie and TV picks, next-episode playback, saved filters,
+  recent picks, candidate management, and Android playback support.
+category: "General"
+owner: "Watch Wheel Contributors"
+artifacts:
+- "Jellyfin.Plugin.WatchWheel.dll"
+changelog: >
+  Public-ready release with portable documentation, release automation,
+  and removal of environment-specific development and deployment data.

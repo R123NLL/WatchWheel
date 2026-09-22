@@ -1,0 +1,9 @@
+{
+    // Optional development layout. Adjust these relative paths if your local
+    // Jellyfin and jellyfin-web clones are elsewhere.
+    "jellyfinDir": "${workspaceFolder}/../jellyfin/Jellyfin.Server",
+    "jellyfinWebDir": "${workspaceFolder}/../jellyfin-web",
+    "jellyfinWindowsDataDir": "${env:LOCALAPPDATA}/jellyfin",
+    "jellyfinLinuxDataDir": "${env:HOME}/.local/share/jellyfin",
+    "pluginName": "Jellyfin.Plugin.WatchWheel"
+}
