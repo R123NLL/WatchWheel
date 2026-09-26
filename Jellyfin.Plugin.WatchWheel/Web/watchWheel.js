@@ -57,6 +57,7 @@
         return {
             prime: prime,
             enabled: function (value) { enabled = value; if (!enabled) stop(); },
+            effect: function () { /* Reserved for approved shared UI effects. */ },
             spin: function (duration) { if (duration > 0) play(0, duration); },
             win: function () { stop(); play(1, 0); },
             stop: stop,
@@ -197,7 +198,7 @@
         function byId(id) { return page.querySelector('#' + id); }
         var canvas = byId('watchWheelCanvas');
         var context = canvas.getContext('2d');
-        var wheelSound = createWheelSound(), soundEnabled = true;
+        var wheelSound = createWheelSound(), soundEnabled = true, showChoices = true, activeSkin = 'classic';
         function message(text) { byId('wwMessage').textContent = text || ''; }
         function count() { byId('candidateCount').textContent = String(eligibleItems().length); }
         function busy() { return state.contextChanged || state.spinning || state.loading || state.playing; }
@@ -270,7 +271,12 @@
         }
 
         function savePreferences() {
-            var preferences = { avoidRecent: byId('wwAvoidRecent').checked, soundEnabled: soundEnabled };
+            var preferences = {
+                avoidRecent: byId('wwAvoidRecent').checked,
+                soundEnabled: soundEnabled,
+                showChoices: showChoices,
+                skin: activeSkin
+            };
             filterIds.forEach(function (id) { preferences[id] = byId(id).value; });
             savedPreferences = preferences;
             if (!storageKey || storageKey !== preferenceKey()) return;
@@ -288,6 +294,7 @@
             filterIds.forEach(function (id) {
                 var select = byId(id);
                 var saved = savedPreferences[id];
+                if (id === 'wwWatchStatus' && saved === 'all') saved = 'all-unwatched';
                 if (typeof saved === 'string' && Array.from(select.options).some(function (option) {
                     return option.value === saved;
                 })) {
@@ -301,7 +308,33 @@
             });
             byId('wwAvoidRecent').checked = savedPreferences.avoidRecent === true;
             soundEnabled = savedPreferences.soundEnabled !== false;
+            showChoices = savedPreferences.showChoices !== false;
+            activeSkin = savedPreferences.skin === 'classic' ? savedPreferences.skin : 'classic';
+            byId('wwShowChoices').checked = showChoices;
+            byId('wwSkin').value = activeSkin;
+            applyAppearance(false);
             updateSound();
+        }
+
+        function applyAppearance(animate) {
+            page.setAttribute('data-skin', activeSkin);
+            if (page.classList) page.classList.toggle('wwChoicesHidden', !showChoices);
+            byId('wwChoicesLibrary').classList.toggle('hidden', !showChoices);
+            if (animate && !reducedMotion()) {
+                if (page.classList) {
+                    page.classList.add('wwThemeChanging');
+                    setTimeout(function () { page.classList.remove('wwThemeChanging'); }, 280);
+                }
+            }
+        }
+
+        function setSettingsOpen(open) {
+            var panel = byId('wwSettingsPanel');
+            panel.classList.toggle('hidden', !open);
+            panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+            byId('wwSettingsButton').setAttribute('aria-expanded', open ? 'true' : 'false');
+            wheelSound.effect(open ? 'settings-open' : 'button-click');
+            (open ? byId('wwSettingsClose') : byId('wwSettingsButton')).focus();
         }
 
         function eligibleItems() {
@@ -336,7 +369,7 @@
             byId('wwType').value = 'both';
             byId('wwGenre').value = '';
             byId('wwDecade').value = '';
-            byId('wwWatchStatus').value = 'all';
+            byId('wwWatchStatus').value = 'all-unwatched';
             byId('wwRuntime').value = '';
             byId('wwRating').value = '';
             byId('wwYear').value = '';
@@ -458,7 +491,7 @@
 
         function updateSound() {
             wheelSound.enabled(soundEnabled);
-            byId('wwSound').textContent = soundEnabled ? 'Sound on' : 'Sound off';
+            byId('wwSound').textContent = soundEnabled ? 'Enabled' : 'Disabled';
             byId('wwSound').setAttribute('aria-pressed', soundEnabled ? 'true' : 'false');
         }
 
@@ -739,8 +772,8 @@
                 var maxMinutes = Number(byId('wwRuntime').value);
                 var minimumRating = Number(byId('wwRating').value);
                 var releaseYear = byId('wwYear').value;
-                var watchStatus = byId('wwWatchStatus').value || 'all';
-                params.set('includeInProgress', watchStatus === 'not-started' ? 'false' : 'true');
+                var watchStatus = byId('wwWatchStatus').value || 'all-unwatched';
+                params.set('watchStatus', watchStatus);
                 var result = await readJSON('WatchWheel/Items?' + params);
                 if (!ensureContext() || request !== state.request) return;
                 if (!Array.isArray(value(result, 'Items'))) throw new Error('Invalid title response.');
@@ -749,9 +782,6 @@
                     if (!item || !idOf(item)) return false;
                     if (!matchesRuntime(item, maxMinutes) || !matchesRating(item, minimumRating)) return false;
                     if (releaseYear && String(value(item, 'Year')) !== releaseYear) return false;
-                    // Use the backend's episode-aware status, not the next episode's resume ticks.
-                    if (watchStatus === 'in-progress') return value(item, 'IsInProgress') === true;
-                    if (watchStatus === 'not-started') return value(item, 'IsInProgress') === false;
                     return true;
                 });
                 state.items = eligibleItems();
@@ -889,6 +919,19 @@
                 if (!state.filtersLoaded || !ensureContext()) return;
                 soundEnabled = !soundEnabled; updateSound(); savePreferences();
                 if (soundEnabled) wheelSound.prime();
+            });
+            byId('wwSettingsButton').addEventListener('click', function () { setSettingsOpen(true); });
+            byId('wwSettingsClose').addEventListener('click', function () { setSettingsOpen(false); });
+            byId('wwSettingsPanel').addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') setSettingsOpen(false);
+            });
+            byId('wwShowChoices').addEventListener('change', function () {
+                showChoices = byId('wwShowChoices').checked;
+                wheelSound.effect('toggle'); applyAppearance(true); savePreferences();
+            });
+            byId('wwSkin').addEventListener('change', function () {
+                activeSkin = byId('wwSkin').value === 'classic' ? 'classic' : 'classic';
+                wheelSound.effect('filter-change'); applyAppearance(true); savePreferences();
             });
             readSaved(); renderHistory();
             [['wwTypeAll', 'both'], ['wwTypeMovies', 'movie'], ['wwTypeSeries', 'series']].forEach(function (entry) {

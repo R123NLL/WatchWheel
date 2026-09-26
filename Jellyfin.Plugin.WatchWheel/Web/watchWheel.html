@@ -10,9 +10,17 @@
         <div class="content-primary watchWheelShell">
             <div class="watchWheelHeader">
                 <div><h1><span class="cinemaMark" aria-hidden="true">◉</span> WatchWheel</h1></div>
-                <button id="wwSound" type="button" class="raised emby-button wwSound" aria-pressed="true" aria-label="Wheel sound effects" disabled>Sound on</button>
+                <button id="wwSettingsButton" type="button" class="raised emby-button wwSettingsButton" aria-expanded="false" aria-controls="wwSettingsPanel">Settings</button>
                 <div class="candidateBadge"><span id="candidateCount">0</span><span>choices</span></div>
             </div>
+            <section id="wwSettingsPanel" class="wwSettingsPanel hidden" aria-label="Settings" aria-hidden="true">
+                <div class="wwSettingsHeading"><h2>Settings</h2><button id="wwSettingsClose" type="button" class="raised emby-button" aria-label="Close settings">Close</button></div>
+                <div class="wwSettingsGrid">
+                    <div class="filterField"><label for="wwSkin">Appearance</label><select id="wwSkin" class="emby-select"><option value="classic">Classic</option></select></div>
+                    <div class="filterField filterCheckbox"><label><input id="wwShowChoices" type="checkbox" checked><span>Show Choices</span></label></div>
+                    <div class="filterField"><label>Sound</label><button id="wwSound" type="button" class="raised emby-button wwSound" aria-pressed="true" aria-label="Watch Wheel sound effects" disabled>Enabled</button></div>
+                </div>
+            </section>
             <section class="filterPanel" aria-label="Wheel filters">
                 <div class="wwMediaTabs" role="group" aria-label="Media type">
                     <button id="wwTypeAll" type="button" aria-pressed="true">All</button>
@@ -43,7 +51,8 @@
                     <label for="wwWatchStatus">Watch Status</label>
                     <select id="wwWatchStatus" class="emby-select"
                         title="For TV, In progress includes shows with any watched or partially watched regular episode.">
-                        <option value="all">All unwatched</option>
+                        <option value="all-unwatched">All Unwatched</option>
+                        <option value="all-media">All Media</option>
                         <option value="not-started">Not started</option>
                         <option value="in-progress">In progress</option>
                     </select>
@@ -134,7 +143,7 @@
                     </details>
                 </div>
             </section>
-            <section class="cinemaLibrary" aria-label="Titles and recent picks">
+            <section id="wwChoicesLibrary" class="cinemaLibrary" aria-label="Titles and recent picks">
                 <div class="wwBrowseTabs" role="tablist" aria-label="Browse titles">
                     <button id="wwChoicesTab" type="button" role="tab" aria-selected="true" aria-controls="wwChoicesPanel" tabindex="0">Choices</button>
                     <button id="wwRecentTab" type="button" role="tab" aria-selected="false" aria-controls="wwRecentPanel" tabindex="-1">Recent picks</button>

@@ -68,6 +68,7 @@ public class CandidateService
         var type = filters.Type?.Trim().ToLowerInvariant();
         var onlyMovies = type is "movie" or "movies";
         var onlySeries = type is "series" or "tv" or "shows";
+        var watchStatus = NormalizeWatchStatus(filters.WatchStatus);
 
         var movieItems = onlySeries
             ? Array.Empty<BaseItem>()
@@ -75,7 +76,7 @@ public class CandidateService
             {
                 ParentId = filters.LibraryId ?? Guid.Empty,
                 Recursive = true,
-                IsPlayed = false,
+                IsPlayed = watchStatus == "all-media" ? null : false,
                 IncludeItemTypes = [BaseItemKind.Movie],
                 EnableTotalRecordCount = false
             }).ToArray();
@@ -101,12 +102,10 @@ public class CandidateService
             user,
             matchingSeries.Select(item => item.Id));
         var series = matchingSeries
-            .Select(item => CreateSeriesItem(item, progressBySeries[item.Id]))
-            .Where(item => item is not null)
-            .Select(item => item!);
+            .Select(item => CreateSeriesItem(item, progressBySeries[item.Id]));
 
         var result = movies.Concat(series)
-            .Where(item => filters.IncludeInProgress || !item.IsInProgress)
+            .Where(item => MatchesWatchStatus(item, watchStatus))
             .OrderBy(item => item.Name)
             .ToArray();
 
@@ -138,15 +137,10 @@ public class CandidateService
         return true;
     }
 
-    private static WatchWheelItem? CreateSeriesItem(
+    private static WatchWheelItem CreateSeriesItem(
         BaseItem item,
         TvSeriesProgress progress)
     {
-        if (!progress.HasUnwatchedEpisodes)
-        {
-            return null;
-        }
-
         return new WatchWheelItem
         {
             Id = item.Id,
@@ -156,7 +150,7 @@ public class CandidateService
             Overview = item.Overview,
             CommunityRating = item.CommunityRating,
             Genres = item.Genres ?? Array.Empty<string>(),
-            Played = false,
+            Played = !progress.HasUnwatchedEpisodes,
             IsInProgress = progress.HasStarted,
             PlaybackPositionTicks = progress.NextEpisodePlaybackPositionTicks,
             RunTimeTicks = progress.NextEpisodeRunTimeTicks,
@@ -165,6 +159,25 @@ public class CandidateService
             NextEpisodeName = progress.NextEpisodeName,
             NextSeasonNumber = progress.NextSeasonNumber,
             NextEpisodeNumber = progress.NextEpisodeNumber
+        };
+    }
+
+    private static string NormalizeWatchStatus(string? value)
+    {
+        var normalized = value?.Trim().ToLowerInvariant();
+        return normalized is "all-media" or "not-started" or "in-progress"
+            ? normalized
+            : "all-unwatched";
+    }
+
+    private static bool MatchesWatchStatus(WatchWheelItem item, string watchStatus)
+    {
+        return watchStatus switch
+        {
+            "all-media" => true,
+            "not-started" => !item.Played && !item.IsInProgress,
+            "in-progress" => !item.Played && item.IsInProgress,
+            _ => !item.Played
         };
     }
 

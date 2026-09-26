@@ -289,3 +289,43 @@
 #WatchWheelPage .watchWheelHeader > div:first-child { margin-right: auto; }
 #WatchWheelPage .wwSound { padding: 8px 14px; font-size: .85rem; }
 #WatchWheelPage .wwSound[aria-pressed="true"] { border-color: #d3a558; color: #f4d493; }
+
+/* Foundation settings and skin tokens. Classic preserves the established presentation. */
+#WatchWheelPage[data-skin="classic"] {
+    --ww-accent: #d5a14e;
+    --ww-panel: rgba(24,26,26,.95);
+    --ww-border: #494031;
+    transition: color 280ms ease, background-color 280ms ease, background-image 280ms ease;
+}
+#WatchWheelPage .wwSettingsPanel {
+    position: absolute;
+    z-index: 20;
+    top: 76px;
+    right: 28px;
+    width: min(680px,calc(100% - 56px));
+    box-sizing: border-box;
+    margin: 0;
+    padding: 16px 20px;
+    border: 1px solid var(--ww-border,#494031);
+    border-radius: 12px;
+    background: var(--ww-panel,rgba(24,26,26,.95));
+    transform-origin: top center;
+    animation: wwSettingsIn 240ms ease both;
+}
+#WatchWheelPage .wwSettingsHeading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+#WatchWheelPage .wwSettingsHeading h2 { margin: 0; font-size: 1.05rem; color: #e9d4aa; }
+#WatchWheelPage .wwSettingsGrid { display: grid; grid-template-columns: repeat(3,minmax(150px,1fr)); align-items: end; gap: 16px; margin-top: 14px; }
+#WatchWheelPage .wwSettingsButton { padding: 8px 14px; font-size: .85rem; }
+#WatchWheelPage .watchWheelShell { position: relative; }
+#WatchWheelPage.wwThemeChanging .watchWheelShell { animation: wwThemeDissolve 280ms ease both; }
+#WatchWheelPage.wwChoicesHidden .cinemaSidebar { align-self: center; }
+@keyframes wwSettingsIn { from { opacity: 0; transform: translateY(-6px) scale(.99); } to { opacity: 1; transform: none; } }
+@keyframes wwThemeDissolve { 0% { opacity: .84; } 100% { opacity: 1; } }
+@media (max-width: 640px) {
+    #WatchWheelPage .wwSettingsPanel { top: 70px; right: 12px; width: calc(100% - 24px); }
+    #WatchWheelPage .wwSettingsGrid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #WatchWheelPage[data-skin="classic"], #WatchWheelPage .wwSettingsPanel,
+    #WatchWheelPage.wwThemeChanging .watchWheelShell { transition: none; animation: none; }
+}

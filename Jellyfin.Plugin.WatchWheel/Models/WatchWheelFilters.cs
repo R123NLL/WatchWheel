@@ -28,7 +28,7 @@ public class WatchWheelFilters
     public int? Decade { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether in-progress items are included.
+    /// Gets or sets the normalized watch-status filter.
     /// </summary>
-    public bool IncludeInProgress { get; set; } = true;
+    public string WatchStatus { get; set; } = "all-unwatched";
 }

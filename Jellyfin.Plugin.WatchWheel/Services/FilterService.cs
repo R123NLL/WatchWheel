@@ -31,7 +31,7 @@ public class FilterService
         var items = _candidateService.GetCandidates(user, new WatchWheelFilters
         {
             Type = "both",
-            IncludeInProgress = true
+            WatchStatus = "all-media"
         }).Items;
 
         var genres = items

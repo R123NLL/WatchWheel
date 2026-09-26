@@ -84,9 +84,8 @@ public class WatchWheelController : ControllerBase
     /// <param name="type">Optional media type filter.</param>
     /// <param name="genre">Optional genre filter.</param>
     /// <param name="decade">Optional decade filter.</param>
-    /// <param name="includeInProgress">
-    /// Whether partially watched items should be included.
-    /// </param>
+    /// <param name="watchStatus">All-unwatched, all-media, not-started, or in-progress.</param>
+    /// <param name="includeInProgress">Legacy compatibility option used when watchStatus is absent.</param>
     /// <returns>Watch Wheel candidate items.</returns>
     [HttpGet("Items")]
     public async Task<IActionResult> GetItems(
@@ -94,7 +93,8 @@ public class WatchWheelController : ControllerBase
         [FromQuery] string? type = null,
         [FromQuery] string? genre = null,
         [FromQuery] int? decade = null,
-        [FromQuery] bool includeInProgress = true)
+        [FromQuery] string? watchStatus = null,
+        [FromQuery] bool? includeInProgress = null)
     {
         var authorizationInfo =
             await _authorizationContext
@@ -114,7 +114,7 @@ public class WatchWheelController : ControllerBase
             Type = type ?? "both",
             Genre = genre,
             Decade = decade,
-            IncludeInProgress = includeInProgress
+            WatchStatus = NormalizeWatchStatus(watchStatus, includeInProgress)
         };
 
         var result =
@@ -123,6 +123,18 @@ public class WatchWheelController : ControllerBase
                 filters);
 
         return Ok(result);
+    }
+
+    private static string NormalizeWatchStatus(string? watchStatus, bool? includeInProgress)
+    {
+        var normalized = watchStatus?.Trim().ToLowerInvariant();
+        if (normalized is "all-unwatched" or "all-media" or "not-started" or "in-progress")
+        {
+            return normalized;
+        }
+
+        // The old false value meant "not started"; true/default meant all unwatched.
+        return includeInProgress == false ? "not-started" : "all-unwatched";
     }
 
     /// <summary>
