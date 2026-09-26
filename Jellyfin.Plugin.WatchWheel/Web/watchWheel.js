@@ -344,6 +344,7 @@
             panel.setAttribute('aria-hidden', open ? 'false' : 'true');
             byId('wwSettingsButton').setAttribute('aria-expanded', open ? 'true' : 'false');
             wheelSound.effect(open ? 'settings-open' : 'button-click');
+            page.classList.toggle('wwSettingsOpen', open);
             (open ? byId('wwSettingsClose') : byId('wwSettingsButton')).focus();
         }
 
@@ -418,6 +419,7 @@
                     label.appendChild(checkbox); label.appendChild(document.createTextNode(String(value(watcher, 'Name'))));
                     options.appendChild(label);
                 });
+                byId('wwAssignAll').disabled = state.watchers.length === 0;
                 byId('wwAssignmentMessage').textContent = '';
                 byId('wwAssignmentSave').focus();
             } catch (error) {
@@ -540,7 +542,7 @@
                 assign.type = 'button'; assign.className = 'raised emby-button';
                 assign.textContent = 'Watchers'; assign.disabled = locked || !state.watchers.length;
                 assign.setAttribute('aria-label', 'Edit watchers assigned to ' + nameOf(item));
-                assign.addEventListener('click', function () { openAssignments(item); });
+                assign.addEventListener('click', function () { return openAssignments(item); });
                 var remove = document.createElement('button');
                 remove.type = 'button'; remove.className = 'raised emby-button';
                 remove.textContent = 'Remove'; remove.disabled = locked;
@@ -1041,6 +1043,13 @@
             byId('wwSettingsPanel').addEventListener('keydown', function (event) {
                 if (event.key === 'Escape') setSettingsOpen(false);
             });
+            page.addEventListener('pointerdown', function (event) {
+                if (!byId('wwSettingsPanel').classList.contains('hidden')
+                    && !byId('wwSettingsPanel').contains(event.target)
+                    && !byId('wwSettingsButton').contains(event.target)) {
+                    setSettingsOpen(false);
+                }
+            });
             byId('wwShowChoices').addEventListener('change', function () {
                 showChoices = byId('wwShowChoices').checked;
                 wheelSound.effect('toggle'); applyAppearance(true); savePreferences();
@@ -1058,6 +1067,10 @@
                 } catch (error) {
                     watcherNotice('Could not create watcher. Check that the name is valid and unique.');
                 }
+            });
+            byId('wwAssignAll').addEventListener('click', function () {
+                Array.from(byId('wwAssignmentOptions').querySelectorAll('input[type="checkbox"]'))
+                    .forEach(function (checkbox) { checkbox.checked = true; });
             });
             byId('wwAssignmentCancel').addEventListener('click', closeAssignments);
             byId('wwAssignmentSave').addEventListener('click', saveAssignments);

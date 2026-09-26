@@ -314,6 +314,13 @@
     transform-origin: top center;
     animation: wwSettingsIn 240ms ease both;
 }
+#WatchWheelPage.wwSettingsOpen::before {
+    content: "";
+    position: fixed;
+    z-index: 19;
+    inset: 0;
+    background: transparent;
+}
 #WatchWheelPage .wwSettingsHeading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 #WatchWheelPage .wwSettingsHeading h2 { margin: 0; font-size: 1.05rem; color: #e9d4aa; }
 #WatchWheelPage .wwSettingsGrid { display: grid; grid-template-columns: repeat(3,minmax(150px,1fr)); align-items: end; gap: 16px; margin-top: 14px; }
@@ -344,6 +351,7 @@
 #WatchWheelPage .wwAssignmentOptions { display: grid; gap: 8px; }
 #WatchWheelPage .wwAssignmentOptions label { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 7px; background: rgba(255,255,255,.04); }
 #WatchWheelPage .wwModalActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+#WatchWheelPage #wwAssignAll { margin: 0 0 12px; border-color: #9d7943; color: #f0d39b; }
 @media (max-width: 640px) {
     #WatchWheelPage .wwWatcherForm { grid-template-columns: 1fr; }
     #WatchWheelPage .wwWatcherRow { grid-template-columns: 1fr auto auto; }
