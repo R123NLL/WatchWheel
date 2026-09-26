@@ -54,12 +54,34 @@
                 } catch (ignore) { /* Keep the wheel working when audio is unavailable. */ }
             });
         }
+        // Small synthesized cues share the same mute, lifecycle, and user-gesture gate as the approved audio.
+        function cue(frequency, length, volume, type) {
+            if (!enabled || !allowed || !audio || audio.state !== 'running'
+                || typeof audio.createOscillator !== 'function' || document.hidden) return;
+            try {
+                var oscillator = audio.createOscillator(), gain = audio.createGain(), now = audio.currentTime;
+                oscillator.type = type || 'triangle'; oscillator.frequency.setValueAtTime(frequency, now);
+                oscillator.frequency.exponentialRampToValueAtTime(Math.max(60, frequency * .58), now + length);
+                gain.gain.setValueAtTime(Math.max(.0001, volume), now);
+                gain.gain.exponentialRampToValueAtTime(.0001, now + length);
+                oscillator.connect(gain); gain.connect(audio.destination); voices.push(oscillator);
+                oscillator.onended = function () {
+                    oscillator.disconnect(); gain.disconnect();
+                    voices = voices.filter(function (voice) { return voice !== oscillator; });
+                };
+                oscillator.start(now); oscillator.stop(now + length);
+            } catch (ignore) { /* Optional cue failure must not affect selection. */ }
+        }
         return {
             prime: prime,
             enabled: function (value) { enabled = value; if (!enabled) stop(); },
             effect: function () { /* Reserved for approved shared UI effects. */ },
             spin: function (duration) { if (duration > 0) play(0, duration); },
             win: function () { stop(); play(1, 0); },
+            popcornSpin: function (duration) { if (duration > 0) { play(0, duration); cue(180, .16, .045, 'sawtooth'); } },
+            popcornTick: function (slow) { cue(slow ? 460 : 320, slow ? .085 : .045, slow ? .032 : .013, 'triangle'); },
+            popcornSettle: function () { cue(230, .18, .065, 'triangle'); },
+            popcornWin: function () { stop(); play(1, 0); cue(660, .28, .065, 'triangle'); },
             stop: stop,
             close: function () {
                 allowed = false; stop();
@@ -212,7 +234,7 @@
                 symbol.textContent = symbols[i % symbols.length];
                 box.appendChild(symbol); reel.appendChild(box); reelBoxes.push(box);
             }
-            for (var kernel = 0; kernel < 12; kernel++) {
+            for (var kernel = 0; kernel < 22; kernel++) {
                 var particle = document.createElement('span');
                 particle.className = 'wwPopcornParticle';
                 byId('wwPopcornBurst').appendChild(particle);
@@ -237,6 +259,7 @@
             clearTimeout(state.revealTimer);
             state.revealTimer = null;
             byId('wwPopcornStage').classList.remove('wwRevealing');
+            byId('wwPopcornStage').classList.remove('wwSettling');
             byId('winnerCard').classList.remove('wwPopcornWinner');
             if (state.spinning) {
                 state.spinning = false;
@@ -688,6 +711,7 @@
         function hideWinner() {
             clearTimeout(state.revealTimer);
             byId('wwPopcornStage').classList.remove('wwRevealing');
+            byId('wwPopcornStage').classList.remove('wwSettling');
             byId('winnerCard').classList.remove('wwPopcornWinner');
             canvas.classList.remove('cinemaWinner');
             clearTimeout(state.playbackTimer);
@@ -1031,29 +1055,38 @@
             var travel = REEL_BOX_COUNT * 5;
             var started = performance.now();
             var stage = byId('wwPopcornStage');
-            wheelSound.spin(duration);
+            var lastSlot = -1, lastTickAt = -1000;
+            wheelSound.popcornSpin(duration);
             function animate(now) {
                 if (token !== state.spinToken || !ensureContext()) return;
                 if (!page.isConnected || activeSkin !== 'popcorn') { cancelSpin(); return; }
                 var progress = duration === 0 ? 1 : Math.min(Math.max((now - started) / duration, 0), 1);
                 var eased = 1 - Math.pow(1 - progress, 3.2);
                 renderPopcornReel(travel * eased);
+                var slot = Math.floor(travel * eased);
+                if (duration && slot !== lastSlot && now - lastTickAt >= 70) {
+                    wheelSound.popcornTick(progress > .72);
+                    lastSlot = slot; lastTickAt = now;
+                }
                 if (progress < 1) { requestAnimationFrame(animate); return; }
                 renderPopcornReel(travel);
-                stage.classList.add('wwRevealing');
+                wheelSound.popcornSettle();
+                stage.classList.add('wwSettling');
                 if (!reducedMotion()) {
                     state.revealTimer = setTimeout(function () { reveal(); }, 130);
                 } else reveal();
             }
             function reveal() {
                 if (token !== state.spinToken || !page.isConnected || !ensureContext()) return;
+                stage.classList.remove('wwSettling');
+                stage.classList.add('wwRevealing');
                 rememberWinner(winner);
                 showWinner(winner);
                 byId('winnerCard').classList.add('wwPopcornWinner');
                 message('The reel has chosen.');
-                wheelSound.win();
+                wheelSound.popcornWin();
                 if (reducedMotion()) finish();
-                else state.revealTimer = setTimeout(finish, 760);
+                else state.revealTimer = setTimeout(finish, 850);
             }
             function finish() {
                 if (token !== state.spinToken) return;

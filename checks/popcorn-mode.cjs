@@ -23,7 +23,7 @@ const nextFrame = async (e, now) => {
         await e.start();
         assert.equal(e.page.attrs['data-skin'], 'classic');
         assert.equal(reelSize(e), 15, `bounded reel with ${count} candidates`);
-        assert.equal(e.els.wwPopcornBurst.children.length, 12);
+        assert.equal(e.els.wwPopcornBurst.children.length, 22);
         e.els.wwSkin.value = 'popcorn';
         await e.fire('wwSkin', 'change');
         assert.equal(e.page.attrs['data-skin'], 'popcorn');
@@ -78,5 +78,22 @@ const nextFrame = async (e, now) => {
     assert(interrupted.els.winnerCard.classes.has('hidden'), 'stale spin cannot reveal');
     assert(!interrupted.els.wwSpin.disabled, 'cancellation releases lock');
 
-    console.log('PASS: Popcorn mode registration, Classic default, state-preserving switch, fixed 15-box reel at 0/1/50/500/1000 candidates, eligible winner, spin lock, reduced motion, and stale callback cancellation.');
+    const reveal = make({items: titles(1), reduced: false});
+    await reveal.start();
+    reveal.els.wwSkin.value = 'popcorn';
+    await reveal.fire('wwSkin', 'change');
+    await reveal.fire('wwSpin');
+    await nextFrame(reveal, 5000);
+    assert(reveal.els.wwPopcornStage.classes.has('wwSettling'));
+    assert(reveal.els.winnerCard.classes.has('hidden'), 'winner waits for anticipation');
+    const anticipation = [...reveal.timers.values()].find(timer => timer.ms === 130);
+    assert(anticipation); anticipation.f(); await tick();
+    assert(reveal.els.wwPopcornStage.classes.has('wwRevealing'));
+    assert(!reveal.els.winnerCard.classes.has('hidden'));
+    const cleanup = [...reveal.timers.values()].find(timer => timer.ms === 850);
+    assert(cleanup); cleanup.f(); await tick();
+    assert(!reveal.els.wwPopcornStage.classes.has('wwRevealing'));
+    assert(!reveal.els.wwSpin.disabled);
+
+    console.log('PASS: Popcorn mode registration, Classic default, state-preserving switch, fixed 15-box reel at 0/1/50/500/1000 candidates, eligible winner, anticipation/burst cleanup, spin lock, reduced motion, and stale callback cancellation.');
 })().catch(error => { console.error(error); process.exit(1); });

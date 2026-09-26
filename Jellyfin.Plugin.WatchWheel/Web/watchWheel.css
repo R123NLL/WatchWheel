@@ -493,3 +493,134 @@
     #WatchWheelPage .wwWatcherForm { grid-template-columns: 1fr; }
     #WatchWheelPage .wwWatcherRow { grid-template-columns: 1fr auto auto; }
 }
+
+/* Popcorn theatrical layer: entirely cosmetic, with no per-candidate artwork. */
+#WatchWheelPage[data-skin="popcorn"] {
+    background-color: #080a12;
+    background-image: radial-gradient(ellipse at 50% 52%,rgba(171,78,25,.22),transparent 48%),
+        radial-gradient(ellipse at 50% -10%,rgba(35,60,91,.45),transparent 58%),
+        linear-gradient(90deg,#070910,#11101a 50%,#070910);
+}
+#WatchWheelPage[data-skin="popcorn"] .cinemaLayout { position: relative; isolation: isolate; }
+#WatchWheelPage[data-skin="popcorn"] .cinemaLayout::before {
+    content: ""; position: absolute; z-index: -2; pointer-events: none;
+    inset: 0 -3% 6%; opacity: .44; filter: blur(10px);
+    background: radial-gradient(ellipse at center,transparent 25%,#080a12 89%),
+        repeating-linear-gradient(96deg,transparent 0 8%,rgba(8,10,17,.95) 8% 9%,transparent 9% 18%),
+        repeating-linear-gradient(117deg,#38252b 0 8%,#1a3250 8% 17%,#793f2a 17% 23%,#161d31 23% 31%);
+    transform: perspective(600px) rotateX(5deg) scale(1.02);
+}
+#WatchWheelPage[data-skin="popcorn"] .cinemaLayout::after {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    inset: 8% -4% -10%;
+    background: radial-gradient(ellipse at 50% 43%,rgba(255,157,52,.24),transparent 39%),
+        radial-gradient(ellipse at 50% 91%,rgba(12,9,17,.25),#080a12 78%);
+}
+#WatchWheelPage[data-skin="popcorn"] .wheelSection { position: relative; }
+#WatchWheelPage[data-skin="popcorn"] .wheelSection::after {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    left: -4%; right: -4%; bottom: -120px; height: 150px; opacity: .72;
+    background: radial-gradient(ellipse at 4% 100%,#622022 0 34%,transparent 38%),
+        radial-gradient(ellipse at 24% 105%,#752526 0 35%,transparent 39%),
+        radial-gradient(ellipse at 49% 110%,#682124 0 34%,transparent 38%),
+        radial-gradient(ellipse at 74% 105%,#752526 0 35%,transparent 39%),
+        radial-gradient(ellipse at 97% 100%,#622022 0 34%,transparent 38%);
+    filter: blur(8px);
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage {
+    border-bottom: 3px solid #e3ad5c;
+    background: radial-gradient(ellipse at 50% 80%,rgba(255,181,76,.32),transparent 46%),
+        linear-gradient(180deg,rgba(7,10,19,.2) 18%,rgba(8,8,14,.96) 100%);
+    box-shadow: 0 8px 11px -8px #ffcf76,0 24px 46px -26px #f6a743,
+        inset 0 -15px 22px -21px #ffedbd;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage::before {
+    content: ""; position: absolute; z-index: 1; pointer-events: none;
+    left: 50%; top: -60%; width: min(55%,500px); height: 175%;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg,rgba(255,205,119,.08),rgba(255,159,42,.19) 65%,transparent);
+    clip-path: polygon(45% 0,55% 0,100% 100%,0 100%);
+    filter: blur(13px);
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage::after {
+    content: ""; position: absolute; z-index: 1; pointer-events: none;
+    left: 0; right: 0; bottom: 0; height: 46px;
+    background: linear-gradient(180deg,transparent,rgba(8,7,12,.72));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornLight {
+    z-index: 2; width: min(42%,380px); height: 100%;
+    background: radial-gradient(ellipse at 50% 80%,rgba(255,185,63,.5),rgba(248,118,33,.12) 48%,transparent 74%);
+    filter: blur(4px);
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
+    border-color: #ffe3a9;
+    background: linear-gradient(100deg,rgba(0,0,0,.24),transparent 28%,rgba(255,255,255,.2) 50%,rgba(0,0,0,.25) 100%),
+        repeating-linear-gradient(90deg,#ad2829 0 16%,#fff0ce 16% 32%);
+    box-shadow: inset -10px 0 14px rgba(76,10,12,.28),inset 0 9px 10px rgba(255,255,255,.32),
+        0 13px 13px rgba(0,0,0,.72),0 0 15px rgba(222,108,37,.16);
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox:first-child {
+    border-color: #ffe4a4;
+    box-shadow: 0 0 24px rgba(255,178,59,.62),0 20px 22px rgba(0,0,0,.76),
+        inset 0 8px 16px rgba(255,255,255,.3);
+}
+#WatchWheelPage .wwPopcornFlare {
+    position: absolute; z-index: 7; pointer-events: none; opacity: 0;
+    left: 50%; bottom: 18px; width: min(58%,460px); aspect-ratio: 1;
+    transform: translate(-50%,32%) scale(.2);
+    background: radial-gradient(circle,rgba(255,250,200,.92),rgba(255,190,69,.6) 16%,rgba(255,115,21,.2) 36%,transparent 67%);
+    mix-blend-mode: screen;
+}
+#WatchWheelPage .wwPopcornLid {
+    position: absolute; z-index: 8; pointer-events: none; opacity: 0;
+    left: 50%; bottom: 108px; width: 132px; height: 29px;
+    transform: translateX(-50%); transform-origin: center bottom;
+    border: 3px solid #ffe3ad; border-radius: 18px 18px 7px 7px;
+    background: repeating-linear-gradient(90deg,#ac282a 0 20%,#fff0ce 20% 40%);
+    box-shadow: 0 0 20px rgba(255,193,73,.65);
+}
+#WatchWheelPage .wwRevealing .wwPopcornFlare { animation: wwPopcornFlare 760ms ease-out both; }
+#WatchWheelPage .wwRevealing .wwPopcornLid { animation: wwPopcornLid 760ms cubic-bezier(.15,.7,.2,1) both; }
+#WatchWheelPage .wwSettling .wwPopcornBox:first-child { filter: drop-shadow(0 0 25px #ffd383) brightness(1.2); }
+#WatchWheelPage .wwPopcornBurst { z-index: 12; bottom: 138px; }
+#WatchWheelPage .wwPopcornParticle { width: 17px; height: 16px; box-shadow: 0 0 15px rgba(255,204,108,.8); }
+#WatchWheelPage .wwPopcornParticle:nth-child(6n+1) { --dx: -210px; --dy: -172px; }
+#WatchWheelPage .wwPopcornParticle:nth-child(6n+2) { --dx: -135px; --dy: -224px; }
+#WatchWheelPage .wwPopcornParticle:nth-child(6n+3) { --dx: -64px; --dy: -255px; }
+#WatchWheelPage .wwPopcornParticle:nth-child(6n+4) { --dx: 54px; --dy: -247px; }
+#WatchWheelPage .wwPopcornParticle:nth-child(6n+5) { --dx: 135px; --dy: -210px; }
+#WatchWheelPage .wwPopcornParticle:nth-child(6n) { --dx: 215px; --dy: -153px; }
+#WatchWheelPage .wwPopcornParticle:nth-child(4n) { animation-delay: 65ms; width: 11px; height: 11px; }
+#WatchWheelPage[data-skin="popcorn"] .winnerCard,
+#WatchWheelPage[data-skin="popcorn"] .cinemaEmpty {
+    position: relative; z-index: 3;
+    border-color: rgba(242,183,96,.65);
+    background: linear-gradient(125deg,rgba(11,14,23,.97),rgba(16,19,24,.93));
+    box-shadow: 0 0 0 1px rgba(255,209,139,.12),0 0 45px rgba(246,133,35,.24),0 22px 42px rgba(0,0,0,.56);
+}
+#WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner {
+    animation: wwPopcornWinner 760ms cubic-bezier(.16,.7,.2,1) both;
+}
+#WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner .winnerPosterWrapper {
+    animation: wwPosterLift 700ms cubic-bezier(.13,.7,.25,1) both;
+}
+#WatchWheelPage[data-skin="popcorn"] #wwSpin {
+    z-index: 10; height: 70px; width: min(400px,84vw); letter-spacing: .13em;
+    background: linear-gradient(180deg,#72401f,#2e1b18 48%,#1a1318);
+    box-shadow: 0 0 0 2px rgba(255,215,149,.1),0 0 31px rgba(255,173,57,.52),
+        inset 0 1px 9px rgba(255,242,188,.3),0 14px 25px rgba(0,0,0,.55);
+}
+@keyframes wwPopcornFlare { 0% { opacity: 0; transform: translate(-50%,32%) scale(.2); } 22% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,32%) scale(1.3); } }
+@keyframes wwPopcornLid { 0%,12% { opacity: 0; transform: translateX(-50%) rotate(0); } 35% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-82px) rotate(-26deg); } }
+@keyframes wwPopcornWinner { from { opacity: 0; transform: translateY(150px) scale(.76); filter: brightness(1.6); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes wwPosterLift { from { opacity: .35; transform: translateY(115px) scale(.82); } to { opacity: 1; transform: none; } }
+@media (max-width:640px) {
+    #WatchWheelPage .wwPopcornLid { width: 100px; bottom: 91px; }
+    #WatchWheelPage .wwPopcornBurst { bottom: 114px; }
+}
+@media (prefers-reduced-motion:reduce) {
+    #WatchWheelPage .wwRevealing .wwPopcornFlare,
+    #WatchWheelPage .wwRevealing .wwPopcornLid,
+    #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner,
+    #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner .winnerPosterWrapper { animation: none; }
+}
