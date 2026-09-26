@@ -1,7 +1,7 @@
 ---
 name: "Watch Wheel"
 guid: "4c6f5316-58f6-4d90-87cc-b8ca47b40a01"
-version: "1.0.2.4"
+version: "1.0.2.5"
 targetAbi: "10.11.11.0"
 framework: "net9.0"
 overview: "Choose an unwatched movie or the next episode with a spinning wheel."
