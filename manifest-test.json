@@ -9,12 +9,12 @@
         "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
         "versions":  [
                          {
-                             "version":  "1.0.2.3",
-                             "changelog":  "TEST BUILD: Assign to All for watcher assignments and outside-click closing for Web Settings.",
+                             "version":  "1.0.2.4",
+                             "changelog":  "TEST BUILD: Popcorn Mode with lightweight horizontal reel, cinematic winner reveal, smooth mode switching and Android TV support.",
                              "targetAbi":  "10.11.11.0",
-                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.3-test/WatchWheel-1.0.2.3.zip",
-                             "checksum":  "0ab45674331bc93588ceb56129b84064",
-                             "timestamp":  "2026-09-26T10:37:51Z"
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.4-test/WatchWheel-1.0.2.4.zip",
+                             "checksum":  "3a7274140beb13d24b439e9a9517135f",
+                             "timestamp":  "2026-09-26T11:30:21Z"
                          }
                      ]
     }
