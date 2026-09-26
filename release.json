@@ -1,12 +1,12 @@
 ﻿{
     "name":  "Watch Wheel",
     "guid":  "4c6f5316-58f6-4d90-87cc-b8ca47b40a01",
-    "version":  "1.0.2.2",
+    "version":  "1.0.2.3",
     "targetAbi":  "10.11.11.0",
     "framework":  "net9.0",
     "owner":  "Watch Wheel Contributors",
     "category":  "General",
     "overview":  "Choose an unwatched movie or next episode.",
     "description":  "User-aware movie and TV picks with filters, history, next-episode playback and Android support.",
-    "changelog":  "Test build: watcher profiles, persistent media assignments, watcher filtering, Web management and Android TV watcher support."
+    "changelog":  "Test build: Assign to All for watcher assignments and outside-click closing for Web Settings."
 }
