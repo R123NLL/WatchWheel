@@ -193,7 +193,8 @@
     function createApp(page) {
         var state = {
             items: [], pool: [], removed: new Set(), history: [], winner: null, rotation: 0,
-            spinning: false, loading: false, playing: false, request: 0, appliedFilters: null, candidatePage: 0, playbackTimer: null, filtersLoaded: false, contextChanged: false
+            watchers: [], assignmentItem: null, spinning: false, loading: false, playing: false,
+            request: 0, appliedFilters: null, candidatePage: 0, playbackTimer: null, filtersLoaded: false, contextChanged: false
         };
         function byId(id) { return page.querySelector('#' + id); }
         var canvas = byId('watchWheelCanvas');
@@ -202,7 +203,7 @@
         function message(text) { byId('wwMessage').textContent = text || ''; }
         function count() { byId('candidateCount').textContent = String(eligibleItems().length); }
         function busy() { return state.contextChanged || state.spinning || state.loading || state.playing; }
-        var filterIds = ['wwType', 'wwGenre', 'wwDecade', 'wwWatchStatus', 'wwRuntime', 'wwRating', 'wwYear', 'wwLibrary'];
+        var filterIds = ['wwType', 'wwGenre', 'wwDecade', 'wwWatchStatus', 'wwWatcher', 'wwRuntime', 'wwRating', 'wwYear', 'wwLibrary'];
         var storageKey = preferenceKey();
         var savedPreferences = {};
 
@@ -240,6 +241,15 @@
                     clearTimeout(timer); reject(error);
                 });
             });
+        }
+
+        function writeJSON(method, path, body) {
+            return Promise.resolve(window.ApiClient.ajax({
+                type: method,
+                url: window.ApiClient.getUrl(path),
+                data: body == null ? undefined : JSON.stringify(body),
+                contentType: 'application/json'
+            }));
         }
 
         function storageNotice(text) { byId('wwStorageNote').textContent = text; }
@@ -337,6 +347,102 @@
             (open ? byId('wwSettingsClose') : byId('wwSettingsButton')).focus();
         }
 
+        function updateWatchers(watchers) {
+            state.watchers = Array.isArray(watchers) ? watchers.filter(function (watcher) {
+                return value(watcher, 'Id') && String(value(watcher, 'Name') || '').trim();
+            }) : [];
+            var select = byId('wwWatcher');
+            var selected = select.value;
+            select.textContent = '';
+            var all = document.createElement('option'); all.value = ''; all.textContent = 'All'; select.appendChild(all);
+            state.watchers.forEach(function (watcher) {
+                var option = document.createElement('option');
+                option.value = String(value(watcher, 'Id'));
+                option.textContent = String(value(watcher, 'Name'));
+                select.appendChild(option);
+            });
+            select.value = state.watchers.some(function (watcher) {
+                return String(value(watcher, 'Id')) === selected;
+            }) ? selected : '';
+            renderWatcherList();
+        }
+
+        async function refreshWatchers() {
+            var previous = byId('wwWatcher').value;
+            var response = await readJSON('WatchWheel/Watchers');
+            updateWatchers(value(response, 'Watchers') || []);
+            var selectionRemoved = previous && !byId('wwWatcher').value;
+            savePreferences();
+            if (selectionRemoved && state.filtersLoaded && !busy()) await loadCandidates();
+        }
+
+        function watcherNotice(text) { byId('wwWatcherMessage').textContent = text || ''; }
+
+        function renderWatcherList() {
+            var list = byId('wwWatcherList'); list.textContent = '';
+            state.watchers.forEach(function (watcher) {
+                var id = String(value(watcher, 'Id')), name = String(value(watcher, 'Name'));
+                var row = document.createElement('li'); row.className = 'wwWatcherRow';
+                var label = document.createElement('span'); label.textContent = name; row.appendChild(label);
+                var rename = document.createElement('button'); rename.type = 'button'; rename.className = 'raised emby-button'; rename.textContent = 'Rename';
+                rename.addEventListener('click', async function () {
+                    var next = window.prompt('Rename watcher', name);
+                    if (next == null) return;
+                    try { await writeJSON('PUT', 'WatchWheel/Watchers/' + encodeURIComponent(id), { Name: next }); await refreshWatchers(); watcherNotice('Watcher renamed.'); }
+                    catch (error) { watcherNotice('Could not rename watcher. Check that the name is valid and unique.'); }
+                });
+                var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'raised emby-button'; remove.textContent = 'Delete';
+                remove.addEventListener('click', async function () {
+                    if (!window.confirm('Delete watcher "' + name + '"? Media will not be deleted.')) return;
+                    try { await writeJSON('DELETE', 'WatchWheel/Watchers/' + encodeURIComponent(id)); await refreshWatchers(); watcherNotice('Watcher deleted and assignments cleaned up.'); }
+                    catch (error) { watcherNotice('Could not delete watcher.'); }
+                });
+                row.appendChild(rename); row.appendChild(remove); list.appendChild(row);
+            });
+        }
+
+        async function openAssignments(item) {
+            if (!item || !state.watchers.length || busy()) return;
+            state.assignmentItem = item;
+            byId('wwAssignmentItem').textContent = nameOf(item);
+            byId('wwAssignmentMessage').textContent = 'Loading assignments...';
+            byId('wwAssignmentDialog').classList.remove('hidden');
+            var options = byId('wwAssignmentOptions'); options.textContent = '';
+            try {
+                var response = await readJSON('WatchWheel/Assignments/' + encodeURIComponent(idOf(item)));
+                var assigned = new Set((value(response, 'WatcherIds') || []).map(String));
+                state.watchers.forEach(function (watcher) {
+                    var label = document.createElement('label');
+                    var checkbox = document.createElement('input'); checkbox.type = 'checkbox';
+                    checkbox.value = String(value(watcher, 'Id')); checkbox.checked = assigned.has(checkbox.value);
+                    label.appendChild(checkbox); label.appendChild(document.createTextNode(String(value(watcher, 'Name'))));
+                    options.appendChild(label);
+                });
+                byId('wwAssignmentMessage').textContent = '';
+                byId('wwAssignmentSave').focus();
+            } catch (error) {
+                byId('wwAssignmentMessage').textContent = 'Could not load assignments.';
+            }
+        }
+
+        function closeAssignments() {
+            state.assignmentItem = null;
+            byId('wwAssignmentDialog').classList.add('hidden');
+        }
+
+        async function saveAssignments() {
+            if (!state.assignmentItem) return;
+            var ids = Array.from(byId('wwAssignmentOptions').querySelectorAll('input:checked')).map(function (input) { return input.value; });
+            byId('wwAssignmentMessage').textContent = 'Saving...';
+            try {
+                await writeJSON('PUT', 'WatchWheel/Assignments/' + encodeURIComponent(idOf(state.assignmentItem)), { WatcherIds: ids });
+                wheelSound.effect('toggle'); closeAssignments();
+                if (byId('wwWatcher').value) await loadCandidates();
+            } catch (error) {
+                byId('wwAssignmentMessage').textContent = 'Could not save assignments.';
+            }
+        }
+
         function eligibleItems() {
             var recent = new Set(byId('wwAvoidRecent').checked
                 ? state.history.map(function (entry) { return entry.id; }) : []);
@@ -374,6 +480,7 @@
             byId('wwRating').value = '';
             byId('wwYear').value = '';
             byId('wwLibrary').value = '';
+            byId('wwWatcher').value = '';
             byId('wwAvoidRecent').checked = false;
             byId('wwCandidateSearch').value = '';
             return loadCandidates();
@@ -429,6 +536,11 @@
                     .filter(Boolean).join(' • ') || 'Next unwatched episode'));
                 meta.textContent = details.filter(Boolean).join(' • ');
                 info.appendChild(title); info.appendChild(meta); row.appendChild(info);
+                var assign = document.createElement('button');
+                assign.type = 'button'; assign.className = 'raised emby-button';
+                assign.textContent = 'Watchers'; assign.disabled = locked || !state.watchers.length;
+                assign.setAttribute('aria-label', 'Edit watchers assigned to ' + nameOf(item));
+                assign.addEventListener('click', function () { openAssignments(item); });
                 var remove = document.createElement('button');
                 remove.type = 'button'; remove.className = 'raised emby-button';
                 remove.textContent = 'Remove'; remove.disabled = locked;
@@ -440,7 +552,7 @@
                     refreshLocalPool();
                     byId('wwCandidateSearch').focus();
                 });
-                row.appendChild(remove); list.appendChild(row);
+                row.appendChild(remove); row.appendChild(assign); list.appendChild(row);
             });
         }
 
@@ -511,6 +623,7 @@
             byId('wwApplyFilters').disabled = locked;
             byId('wwAgain').disabled = locked || pending || !available;
             byId('wwRemove').disabled = locked || !state.winner;
+            byId('wwAssignWinner').disabled = locked || !state.winner || !state.watchers.length;
             byId('wwPlay').disabled = locked || !playbackTarget(state.winner);
             byId('wwOpen').disabled = locked || !state.winner;
             byId('wwEpisode').disabled = locked || !state.winner;
@@ -715,7 +828,8 @@
         }
 
         async function loadFilters() {
-            var result = await readJSON('WatchWheel/Filters');
+            var results = await Promise.all([readJSON('WatchWheel/Filters'), readJSON('WatchWheel/Watchers')]);
+            var result = results[0];
             if (!ensureContext()) throw new Error('Account changed.');
             if (!result || ['Genres', 'Decades', 'Years', 'Libraries'].some(function (key) {
                 var options = value(result, key);
@@ -746,6 +860,7 @@
                 option.value = String(id); option.textContent = String(value(library, 'Name') || 'Library');
                 librarySelect.appendChild(option);
             });
+            updateWatchers(value(results[1], 'Watchers') || []);
         }
 
         async function loadCandidates() {
@@ -769,6 +884,7 @@
                 if (byId('wwLibrary').value) params.set('libraryId', byId('wwLibrary').value);
                 if (byId('wwGenre').value) params.set('genre', byId('wwGenre').value);
                 if (byId('wwDecade').value) params.set('decade', byId('wwDecade').value);
+                if (byId('wwWatcher').value) params.set('watcherId', byId('wwWatcher').value);
                 var maxMinutes = Number(byId('wwRuntime').value);
                 var minimumRating = Number(byId('wwRating').value);
                 var releaseYear = byId('wwYear').value;
@@ -933,6 +1049,21 @@
                 activeSkin = byId('wwSkin').value === 'classic' ? 'classic' : 'classic';
                 wheelSound.effect('filter-change'); applyAppearance(true); savePreferences();
             });
+            byId('wwWatcherCreate').addEventListener('submit', async function (event) {
+                event.preventDefault();
+                var input = byId('wwWatcherName'), name = input.value;
+                try {
+                    await writeJSON('POST', 'WatchWheel/Watchers', { Name: name });
+                    input.value = ''; await refreshWatchers(); watcherNotice('Watcher created.');
+                } catch (error) {
+                    watcherNotice('Could not create watcher. Check that the name is valid and unique.');
+                }
+            });
+            byId('wwAssignmentCancel').addEventListener('click', closeAssignments);
+            byId('wwAssignmentSave').addEventListener('click', saveAssignments);
+            byId('wwAssignmentDialog').addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') closeAssignments();
+            });
             readSaved(); renderHistory();
             [['wwTypeAll', 'both'], ['wwTypeMovies', 'movie'], ['wwTypeSeries', 'series']].forEach(function (entry) {
                 byId(entry[0]).addEventListener('click', function () {
@@ -991,6 +1122,7 @@
             byId('wwSpin').addEventListener('click', spin);
             byId('wwAgain').addEventListener('click', spin);
             byId('wwRemove').addEventListener('click', removeWinner);
+            byId('wwAssignWinner').addEventListener('click', function () { openAssignments(state.winner); });
             byId('wwPlay').addEventListener('click', playWinner);
             byId('wwOpen').addEventListener('click', function () {
                 if (!busy() && state.winner) openDetails(idOf(state.winner));

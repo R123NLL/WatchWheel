@@ -20,6 +20,16 @@
                     <div class="filterField filterCheckbox"><label><input id="wwShowChoices" type="checkbox" checked><span>Show Choices</span></label></div>
                     <div class="filterField"><label>Sound</label><button id="wwSound" type="button" class="raised emby-button wwSound" aria-pressed="true" aria-label="Watch Wheel sound effects" disabled>Enabled</button></div>
                 </div>
+                <section class="wwWatcherSettings" aria-labelledby="wwWatchersHeading">
+                    <h3 id="wwWatchersHeading">Watchers</h3>
+                    <form id="wwWatcherCreate" class="wwWatcherForm">
+                        <label for="wwWatcherName">New watcher</label>
+                        <input id="wwWatcherName" class="emby-input" maxlength="80" autocomplete="off" placeholder="Display name">
+                        <button type="submit" class="raised emby-button">Create</button>
+                    </form>
+                    <p id="wwWatcherMessage" role="status" aria-live="polite"></p>
+                    <ul id="wwWatcherList" class="wwWatcherList"></ul>
+                </section>
             </section>
             <section class="filterPanel" aria-label="Wheel filters">
                 <div class="wwMediaTabs" role="group" aria-label="Media type">
@@ -59,6 +69,10 @@
                 </div>
                 <div class="filterField filterCheckbox">
                     <label><input id="wwAvoidRecent" type="checkbox"><span>Avoid recent picks</span></label>
+                </div>
+                <div class="filterField">
+                    <label for="wwWatcher">Watcher</label>
+                    <select id="wwWatcher" class="emby-select"><option value="">All</option></select>
                 </div>
                 <button id="wwResetFilters" type="button" class="raised emby-button">Reset Filters</button>
 
@@ -134,6 +148,7 @@
                         <button id="wwOpen" type="button" class="raised emby-button">Details</button>
                         <button id="wwEpisode" type="button" class="raised emby-button hidden">Episode Details</button>
                         <button id="wwRemove" type="button" class="raised emby-button">Remove from Wheel</button>
+                        <button id="wwAssignWinner" type="button" class="raised emby-button">Assigned Watchers</button>
                         <button id="wwAgain" type="button" class="raised emby-button">Spin Again</button>
                     </div>
                     <details id="winnerDescription" class="winnerDescription">
@@ -178,6 +193,15 @@
             </section>
             </section>
             </aside>
+            </div>
+            <div id="wwAssignmentDialog" class="wwModal hidden" role="dialog" aria-modal="true" aria-labelledby="wwAssignmentTitle">
+                <div class="wwModalCard">
+                    <h2 id="wwAssignmentTitle">Assigned Watchers</h2>
+                    <p id="wwAssignmentItem"></p>
+                    <div id="wwAssignmentOptions" class="wwAssignmentOptions"></div>
+                    <p id="wwAssignmentMessage" role="status" aria-live="polite"></p>
+                    <div class="wwModalActions"><button id="wwAssignmentCancel" type="button" class="raised emby-button">Cancel</button><button id="wwAssignmentSave" type="button" class="raised emby-button button-submit">Save</button></div>
+                </div>
             </div>
         </div>
     </div>

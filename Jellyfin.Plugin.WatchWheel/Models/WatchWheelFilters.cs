@@ -31,4 +31,7 @@ public class WatchWheelFilters
     /// Gets or sets the normalized watch-status filter.
     /// </summary>
     public string WatchStatus { get; set; } = "all-unwatched";
+
+    /// <summary>Gets or sets an optional watcher identifier.</summary>
+    public Guid? WatcherId { get; set; }
 }

@@ -304,6 +304,8 @@
     right: 28px;
     width: min(680px,calc(100% - 56px));
     box-sizing: border-box;
+    max-height: min(78vh,680px);
+    overflow-y: auto;
     margin: 0;
     padding: 16px 20px;
     border: 1px solid var(--ww-border,#494031);
@@ -328,4 +330,21 @@
 @media (prefers-reduced-motion: reduce) {
     #WatchWheelPage[data-skin="classic"], #WatchWheelPage .wwSettingsPanel,
     #WatchWheelPage.wwThemeChanging .watchWheelShell { transition: none; animation: none; }
+}
+
+#WatchWheelPage .wwWatcherSettings { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--ww-border,#494031); }
+#WatchWheelPage .wwWatcherSettings h3 { margin: 0 0 10px; font-size: 1rem; color: #e9d4aa; }
+#WatchWheelPage .wwWatcherForm { display: grid; grid-template-columns: auto minmax(150px,1fr) auto; align-items: center; gap: 10px; }
+#WatchWheelPage .wwWatcherList { list-style: none; margin: 10px 0 0; padding: 0; }
+#WatchWheelPage .wwWatcherRow { display: grid; grid-template-columns: minmax(120px,1fr) auto auto; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.08); }
+#WatchWheelPage #wwWatcherMessage, #WatchWheelPage #wwAssignmentMessage { min-height: 1.2em; color: #e6cd9e; font-size: .85rem; }
+#WatchWheelPage .wwModal { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.72); }
+#WatchWheelPage .wwModalCard { width: min(480px,100%); max-height: 80vh; overflow-y: auto; box-sizing: border-box; padding: 22px; border: 1px solid #6b5739; border-radius: 12px; background: #202222; box-shadow: 0 20px 60px rgba(0,0,0,.55); animation: wwSettingsIn 240ms ease both; }
+#WatchWheelPage .wwModalCard h2 { margin-top: 0; color: #e9d4aa; }
+#WatchWheelPage .wwAssignmentOptions { display: grid; gap: 8px; }
+#WatchWheelPage .wwAssignmentOptions label { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 7px; background: rgba(255,255,255,.04); }
+#WatchWheelPage .wwModalActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+@media (max-width: 640px) {
+    #WatchWheelPage .wwWatcherForm { grid-template-columns: 1fr; }
+    #WatchWheelPage .wwWatcherRow { grid-template-columns: 1fr auto auto; }
 }

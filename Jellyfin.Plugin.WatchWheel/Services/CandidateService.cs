@@ -17,6 +17,7 @@ public class CandidateService
     private readonly ILibraryManager _libraryManager;
     private readonly IUserDataManager _userDataManager;
     private readonly TvSeriesService _tvSeriesService;
+    private readonly WatcherService _watcherService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CandidateService"/> class.
@@ -24,14 +25,17 @@ public class CandidateService
     /// <param name="libraryManager">Jellyfin library manager.</param>
     /// <param name="userDataManager">Jellyfin user data manager.</param>
     /// <param name="tvSeriesService">Television series progress service.</param>
+    /// <param name="watcherService">Watcher assignment service.</param>
     public CandidateService(
         ILibraryManager libraryManager,
         IUserDataManager userDataManager,
-        TvSeriesService tvSeriesService)
+        TvSeriesService tvSeriesService,
+        WatcherService watcherService)
     {
         _libraryManager = libraryManager;
         _userDataManager = userDataManager;
         _tvSeriesService = tvSeriesService;
+        _watcherService = watcherService;
     }
 
     /// <summary>
@@ -69,6 +73,10 @@ public class CandidateService
         var onlyMovies = type is "movie" or "movies";
         var onlySeries = type is "series" or "tv" or "shows";
         var watchStatus = NormalizeWatchStatus(filters.WatchStatus);
+        if (filters.WatcherId.HasValue && !_watcherService.Exists(filters.WatcherId.Value))
+        {
+            return new WatchWheelResult { Filters = filters };
+        }
 
         var movieItems = onlySeries
             ? Array.Empty<BaseItem>()
@@ -106,6 +114,8 @@ public class CandidateService
 
         var result = movies.Concat(series)
             .Where(item => MatchesWatchStatus(item, watchStatus))
+            .Where(item => !filters.WatcherId.HasValue
+                || _watcherService.IsAssigned(item.Id, filters.WatcherId.Value))
             .OrderBy(item => item.Name)
             .ToArray();
 
