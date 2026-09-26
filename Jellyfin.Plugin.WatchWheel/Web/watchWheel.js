@@ -194,12 +194,56 @@
         var state = {
             items: [], pool: [], removed: new Set(), history: [], winner: null, rotation: 0,
             watchers: [], assignmentItem: null, spinning: false, loading: false, playing: false,
-            request: 0, appliedFilters: null, candidatePage: 0, playbackTimer: null, filtersLoaded: false, contextChanged: false
+            request: 0, spinToken: 0, revealTimer: null, appliedFilters: null, candidatePage: 0, playbackTimer: null, filtersLoaded: false, contextChanged: false
         };
         function byId(id) { return page.querySelector('#' + id); }
         var canvas = byId('watchWheelCanvas');
         var context = canvas.getContext('2d');
         var wheelSound = createWheelSound(), soundEnabled = true, showChoices = true, activeSkin = 'classic';
+        var reelBoxes = [], REEL_BOX_COUNT = 15;
+        function createPopcornReel() {
+            var reel = byId('wwPopcornReel');
+            var symbols = ['★', '✦', '♥', '◆', '▶', '☽', '✧'];
+            for (var i = 0; i < REEL_BOX_COUNT; i++) {
+                var box = document.createElement('div');
+                box.className = 'wwPopcornBox';
+                box.setAttribute('aria-hidden', 'true');
+                var symbol = document.createElement('span');
+                symbol.textContent = symbols[i % symbols.length];
+                box.appendChild(symbol); reel.appendChild(box); reelBoxes.push(box);
+            }
+            for (var kernel = 0; kernel < 12; kernel++) {
+                var particle = document.createElement('span');
+                particle.className = 'wwPopcornParticle';
+                byId('wwPopcornBurst').appendChild(particle);
+            }
+            renderPopcornReel(0);
+        }
+
+        function renderPopcornReel(phase) {
+            var step = Math.max(78, Math.min(132, (byId('wwPopcornStage').clientWidth || 900) / 8));
+            for (var i = 0; i < reelBoxes.length; i++) {
+                var slot = ((i - phase + REEL_BOX_COUNT * 100) % REEL_BOX_COUNT);
+                if (slot > REEL_BOX_COUNT / 2) slot -= REEL_BOX_COUNT;
+                var emphasis = Math.max(0, 1 - Math.abs(slot) / 1.6);
+                reelBoxes[i].style.transform = 'translate3d(calc(-50% + ' + (slot * step).toFixed(2)
+                    + 'px),0,0) scale(' + (1 + emphasis * .32).toFixed(3) + ')';
+                reelBoxes[i].style.zIndex = String(Math.round(emphasis * 5));
+            }
+        }
+
+        function cancelSpin() {
+            state.spinToken++;
+            clearTimeout(state.revealTimer);
+            state.revealTimer = null;
+            byId('wwPopcornStage').classList.remove('wwRevealing');
+            byId('winnerCard').classList.remove('wwPopcornWinner');
+            if (state.spinning) {
+                state.spinning = false;
+                wheelSound.stop();
+                syncButtons();
+            }
+        }
         function message(text) { byId('wwMessage').textContent = text || ''; }
         function count() { byId('candidateCount').textContent = String(eligibleItems().length); }
         function busy() { return state.contextChanged || state.spinning || state.loading || state.playing; }
@@ -221,7 +265,7 @@
                 state.contextChanged = true;
                 state.request++;
                 state.pool = []; state.items = []; state.history = [];
-                state.removed.clear(); state.spinning = false; wheelSound.close();
+                state.removed.clear(); cancelSpin(); wheelSound.close();
                 hideWinner(); renderHistory(); count(); drawWheel(); syncButtons();
             }
             message('Account or server changed. Reload WatchWheel before continuing.');
@@ -319,7 +363,7 @@
             byId('wwAvoidRecent').checked = savedPreferences.avoidRecent === true;
             soundEnabled = savedPreferences.soundEnabled !== false;
             showChoices = savedPreferences.showChoices !== false;
-            activeSkin = savedPreferences.skin === 'classic' ? savedPreferences.skin : 'classic';
+            activeSkin = savedPreferences.skin === 'popcorn' ? 'popcorn' : 'classic';
             byId('wwShowChoices').checked = showChoices;
             byId('wwSkin').value = activeSkin;
             applyAppearance(false);
@@ -328,6 +372,7 @@
 
         function applyAppearance(animate) {
             page.setAttribute('data-skin', activeSkin);
+            if (activeSkin === 'popcorn') renderPopcornReel(0);
             if (page.classList) page.classList.toggle('wwChoicesHidden', !showChoices);
             byId('wwChoicesLibrary').classList.toggle('hidden', !showChoices);
             if (animate && !reducedMotion()) {
@@ -641,6 +686,9 @@
         function playbackMessage(text) { byId('wwPlaybackMessage').textContent = text || ''; }
 
         function hideWinner() {
+            clearTimeout(state.revealTimer);
+            byId('wwPopcornStage').classList.remove('wwRevealing');
+            byId('winnerCard').classList.remove('wwPopcornWinner');
             canvas.classList.remove('cinemaWinner');
             clearTimeout(state.playbackTimer);
             state.playbackTimer = null;
@@ -869,6 +917,7 @@
             if (busy() || !ensureContext()) return;
             var request = ++state.request;
             state.loading = true;
+            cancelSpin();
             hideWinner(); syncButtons();
             message(state.filtersLoaded ? 'Loading your Jellyfin library...' : 'Loading filters...');
             try {
@@ -977,6 +1026,45 @@
             }
         }
 
+        function spinPopcorn(winner, token) {
+            var duration = reducedMotion() ? 0 : 4800;
+            var travel = REEL_BOX_COUNT * 5;
+            var started = performance.now();
+            var stage = byId('wwPopcornStage');
+            wheelSound.spin(duration);
+            function animate(now) {
+                if (token !== state.spinToken || !ensureContext()) return;
+                if (!page.isConnected || activeSkin !== 'popcorn') { cancelSpin(); return; }
+                var progress = duration === 0 ? 1 : Math.min(Math.max((now - started) / duration, 0), 1);
+                var eased = 1 - Math.pow(1 - progress, 3.2);
+                renderPopcornReel(travel * eased);
+                if (progress < 1) { requestAnimationFrame(animate); return; }
+                renderPopcornReel(travel);
+                stage.classList.add('wwRevealing');
+                if (!reducedMotion()) {
+                    state.revealTimer = setTimeout(function () { reveal(); }, 130);
+                } else reveal();
+            }
+            function reveal() {
+                if (token !== state.spinToken || !page.isConnected || !ensureContext()) return;
+                rememberWinner(winner);
+                showWinner(winner);
+                byId('winnerCard').classList.add('wwPopcornWinner');
+                message('The reel has chosen.');
+                wheelSound.win();
+                if (reducedMotion()) finish();
+                else state.revealTimer = setTimeout(finish, 760);
+            }
+            function finish() {
+                if (token !== state.spinToken) return;
+                stage.classList.remove('wwRevealing');
+                state.revealTimer = null;
+                state.spinning = false;
+                syncButtons();
+            }
+            requestAnimationFrame(animate);
+        }
+
         function spin() {
             if (busy() || filtersPending()) return;
             state.items = eligibleItems();
@@ -984,6 +1072,16 @@
             wheelSound.stop(); wheelSound.prime();
             hideWinner(); state.spinning = true; syncButtons(); message('Spinning...');
             var index = Math.floor(Math.random() * state.items.length);
+            var winner = state.items[index];
+            var token = ++state.spinToken;
+            if (activeSkin === 'popcorn') {
+                if (typeof window.Image === 'function') {
+                    var preload = new window.Image();
+                    preload.src = posterUrl(idOf(winner));
+                }
+                spinPopcorn(winner, token);
+                return;
+            }
             var arc = TWO_PI / state.items.length;
             var start = state.rotation;
             var desired = -Math.PI / 2 - (index * arc + arc / 2);
@@ -993,6 +1091,7 @@
             var started = performance.now();
             wheelSound.spin(duration);
             function animate(now) {
+                if (token !== state.spinToken) return;
                 if (!ensureContext()) return;
                 if (!page.isConnected) { wheelSound.close(); state.spinning = false; syncButtons(); return; }
                 var progress = duration === 0 ? 1 : Math.min((now - started) / duration, 1);
@@ -1001,7 +1100,6 @@
                 if (progress < 1) { requestAnimationFrame(animate); return; }
                 state.rotation = ((end % TWO_PI) + TWO_PI) % TWO_PI;
                 state.spinning = false;
-                var winner = state.items[index];
                 rememberWinner(winner);
                 message(eligibleItems().length ? 'The wheel has spoken.'
                     : 'The wheel has spoken. ' + poolMessage());
@@ -1026,7 +1124,7 @@
                 }, true);
             });
             page.addEventListener('viewshow', ensureContext);
-            page.addEventListener('viewhide', function () { wheelSound.close(); });
+            page.addEventListener('viewhide', function () { cancelSpin(); wheelSound.close(); });
             if (typeof document.addEventListener === 'function') {
                 document.addEventListener('visibilitychange', function onVisibilityChange() {
                     if (document.hidden) wheelSound.stop();
@@ -1055,7 +1153,8 @@
                 wheelSound.effect('toggle'); applyAppearance(true); savePreferences();
             });
             byId('wwSkin').addEventListener('change', function () {
-                activeSkin = byId('wwSkin').value === 'classic' ? 'classic' : 'classic';
+                if (state.spinning) { cancelSpin(); hideWinner(); }
+                activeSkin = byId('wwSkin').value === 'popcorn' ? 'popcorn' : 'classic';
                 wheelSound.effect('filter-change'); applyAppearance(true); savePreferences();
             });
             byId('wwWatcherCreate').addEventListener('submit', async function (event) {
@@ -1144,7 +1243,7 @@
                 var target = playbackTarget(state.winner);
                 if (!busy() && target) openDetails(target.id);
             });
-            drawWheel();
+            createPopcornReel(); drawWheel();
             await loadCandidates();
         }
         return { start: start };

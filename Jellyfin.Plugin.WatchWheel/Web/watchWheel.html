@@ -16,7 +16,7 @@
             <section id="wwSettingsPanel" class="wwSettingsPanel hidden" aria-label="Settings" aria-hidden="true">
                 <div class="wwSettingsHeading"><h2>Settings</h2><button id="wwSettingsClose" type="button" class="raised emby-button" aria-label="Close settings">Close</button></div>
                 <div class="wwSettingsGrid">
-                    <div class="filterField"><label for="wwSkin">Appearance</label><select id="wwSkin" class="emby-select"><option value="classic">Classic</option></select></div>
+                    <div class="filterField"><label for="wwSkin">Appearance</label><select id="wwSkin" class="emby-select"><option value="classic">Classic</option><option value="popcorn">Popcorn</option></select></div>
                     <div class="filterField filterCheckbox"><label><input id="wwShowChoices" type="checkbox" checked><span>Show Choices</span></label></div>
                     <div class="filterField"><label>Sound</label><button id="wwSound" type="button" class="raised emby-button wwSound" aria-pressed="true" aria-label="Watch Wheel sound effects" disabled>Enabled</button></div>
                 </div>
@@ -122,6 +122,12 @@
                 <div class="wheelContainer">
                     <div class="wheelPointer" aria-hidden="true"></div>
                     <canvas id="watchWheelCanvas" width="800" height="800" aria-label="Wheel of movie and TV choices"></canvas>
+                    <div id="wwPopcornStage" class="wwPopcornStage" aria-hidden="true">
+                        <div class="wwPopcornLight"></div>
+                        <div id="wwPopcornReel" class="wwPopcornReel"></div>
+                        <div class="wwPopcornMarker"></div>
+                        <div id="wwPopcornBurst" class="wwPopcornBurst"></div>
+                    </div>
                     <button id="wwSpin" type="button" class="spinButton" disabled>SPIN</button>
                 </div>
             </section>

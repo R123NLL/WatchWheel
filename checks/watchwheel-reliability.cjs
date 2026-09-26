@@ -4,23 +4,24 @@ const root=path.resolve(__dirname,'../Jellyfin.Plugin.WatchWheel/Web')+path.sep;
 const html=fs.readFileSync(root+'watchWheel.html','utf8'),js=fs.readFileSync(root+'watchWheel.js','utf8');
 class E{constructor(){this.value='';this.checked=false;this.disabled=false;this.style={};this.children=[];this.events={};this.attrs={};this.classes=new Set();this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),toggle:(c,b)=>b?this.classes.add(c):this.classes.delete(c),contains:c=>this.classes.has(c)};}set textContent(v){this.text=v;this.children=[];}get textContent(){return this.text;}get options(){return this.children;}appendChild(c){this.children.push(c);}addEventListener(n,f){this.events[n]=f;}setAttribute(k,v){this.attrs[k]=v;}getAttribute(k){return this.attrs[k];}focus(){}scrollIntoView(){}contains(target){return this===target;}querySelectorAll(selector){if(selector==='input[type="checkbox"]')return this.children.flatMap(x=>x.children||[]).filter(x=>x.type==='checkbox');if(selector==='input:checked')return this.querySelectorAll('input[type="checkbox"]').filter(x=>x.checked);return [];}}
 const tick=async()=>{await new Promise(setImmediate);await new Promise(setImmediate)};
-function make({saved={},blocked=false}={}){
+function make({saved={},blocked=false,items:providedItems,reduced=true}={}){
  const els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new E()]));
  for(const m of html.matchAll(/<select id="([^"]+)"[\s\S]*?<\/select>/g)){for(const o of m[0].matchAll(/<option value="([^"]*)"/g)){let e=new E();e.value=o[1];els[m[1]].appendChild(e);}els[m[1]].value=els[m[1]].options[0].value;}
  els.watchWheelCanvas.width=els.watchWheelCanvas.height=800;els.watchWheelCanvas.getContext=()=>new Proxy({},{get:(_,key)=>key==='measureText'?text=>({width:text.length*8}):()=>{},set:()=>true});
- const captures={},page={isConnected:true,querySelector:s=>els[s.slice(1)],setAttribute(){},classList:{add(){},remove(){},toggle(){},contains:()=>false},addEventListener:(n,f)=>captures[n]=f,contains:()=>false};
+ const captures={},pageClasses=new Set(),page={isConnected:true,attrs:{},querySelector:s=>els[s.slice(1)],setAttribute(k,v){this.attrs[k]=v;},classList:{add:c=>pageClasses.add(c),remove:c=>pageClasses.delete(c),toggle:(c,b)=>b?pageClasses.add(c):pageClasses.delete(c),contains:c=>pageClasses.has(c)},addEventListener:(n,f)=>captures[n]=f,contains:()=>false};
  let timerID=0;const timers=new Map(),frames=[],requests=[],writes=[],commands=[];
- const items=[{Id:'a',Name:'Movie A',Type:'Movie',IsInProgress:false},{Id:'b',Name:'Movie B',Type:'Movie',IsInProgress:false}];
+ const items=providedItems||[{Id:'a',Name:'Movie A',Type:'Movie',IsInProgress:false},{Id:'b',Name:'Movie B',Type:'Movie',IsInProgress:false}];
  const env={els,page,captures,timers,frames,requests,writes,commands,saved,items,user:'alice',server:'one',filtersFail:false,itemsFail:false,hang:false,invalid:false};
  const api={serverId:()=>env.server,getCurrentUserId:()=>env.user,deviceId:()=> 'device',getUrl:x=>x,getImageUrl:()=>'',ajax:async x=>{commands.push(x);return {};},getJSON:async url=>{requests.push(url);if(url.startsWith('Sessions'))return env.sessionPromise||[{Id:'s',DeviceId:'device',UserId:env.user,SupportsRemoteControl:true}];if(url.includes('/Filters')){if(env.filtersFail)throw Error('offline');return {Genres:['Drama'],Decades:[2020],Years:[2024],Libraries:[]};}if(url.includes('/Watchers'))return {Watchers:env.watchers||[]};if(url.includes('/Assignments/'))return {WatcherIds:env.assigned||[]};if(env.hang)return new Promise(r=>env.resolveLate=r);if(env.itemsFail)throw Error('offline');if(env.invalid)return {Items:'wrong'};const p=new URLSearchParams(url.split('?')[1]);return {Items:p.get('genre')==='Drama'?[]:items};}};
- const window={navigator:{userAgent:'Windows'},location:{},ApiClient:api,prompt:()=>null,confirm:()=>true,matchMedia:()=>({matches:true}),localStorage:{getItem:k=>{if(blocked)throw Error('blocked');return saved[k];},setItem:(k,v)=>{if(blocked)throw Error('blocked');saved[k]=v;writes.push(k);}}};
+ const window={navigator:{userAgent:'Windows'},location:{},ApiClient:api,prompt:()=>null,confirm:()=>true,matchMedia:()=>({matches:reduced}),localStorage:{getItem:k=>{if(blocked)throw Error('blocked');return saved[k];},setItem:(k,v)=>{if(blocked)throw Error('blocked');saved[k]=v;writes.push(k);}}};
  vm.runInNewContext(js,{window,document:{createElement:()=>new E(),createTextNode:text=>({textContent:text}),hidden:false},console:{error(){},warn(){}},URLSearchParams,performance:{now:()=>0},requestAnimationFrame:f=>frames.push(f),setTimeout:(f,ms)=>{const id=++timerID;timers.set(id,{f,ms});return id;},clearTimeout:id=>timers.delete(id)});
  env.start=async()=>{window.WatchWheelApp.init(page);await tick()};
  env.fire=async(id,type='click')=>{const e={stop:false,preventDefault(){},stopImmediatePropagation(){this.stop=true;},stopPropagation(){}};captures[type]?.(e);if(!e.stop)await els[id].events[type]?.(e);await tick()};
  env.spin=async()=>{await env.fire('wwSpin');frames.shift()?.(0);await tick()};
  env.api=api;return env;
 }
-(async()=>{
+module.exports={make,tick,html,js};
+if(require.main===module)(async()=>{
  let e=make();await e.start();assert.equal(e.els.candidateCount.textContent,'2');
  while(e.els.wwCandidateList.children.length){await e.els.wwCandidateList.children[0].children[1].events.click();}assert(e.els.wwSpin.disabled);assert.equal(e.els.candidateCount.textContent,'0');await e.fire('wwRestoreRemoved');assert.equal(e.els.candidateCount.textContent,'2');
  e.els.wwAvoidRecent.checked=true;await e.fire('wwAvoidRecent','change');await e.spin();await e.spin();assert.equal(e.els.candidateCount.textContent,'0');assert(e.els.wwSpin.disabled);await e.fire('wwClearHistory');assert.equal(e.els.candidateCount.textContent,'2');
