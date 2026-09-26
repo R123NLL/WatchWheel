@@ -1,19 +1,21 @@
-﻿{
-    "guid":  "4c6f5316-58f6-4d90-87cc-b8ca47b40a01",
-    "name":  "Watch Wheel",
-    "description":  "Spin a wheel to choose what to watch from your Jellyfin library.",
-    "overview":  "Test channel for upcoming Watch Wheel features before promotion to the stable release.",
-    "owner":  "Watch Wheel Contributors",
-    "category":  "General",
-    "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
-    "versions":  [
-                     {
-                         "version":  "1.0.2.3",
-                         "changelog":  "TEST BUILD: Assign to All for watcher assignments and outside-click closing for Web Settings.",
-                         "targetAbi":  "10.11.11.0",
-                         "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.3-test/WatchWheel-1.0.2.3.zip",
-                         "checksum":  "0ab45674331bc93588ceb56129b84064",
-                         "timestamp":  "2026-09-26T10:37:51Z"
-                     }
-                 ]
-}
+﻿[
+  {
+    "guid": "4c6f5316-58f6-4d90-87cc-b8ca47b40a01",
+    "name": "Watch Wheel",
+    "description": "Spin a wheel to choose what to watch from your Jellyfin library.",
+    "overview": "Test channel for upcoming Watch Wheel features before promotion to the stable release.",
+    "owner": "Watch Wheel Contributors",
+    "category": "General",
+    "imageUrl": "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
+    "versions": [
+      {
+        "version": "1.0.2.3",
+        "changelog": "TEST BUILD: Assign to All for watcher assignments and outside-click closing for Web Settings.",
+        "targetAbi": "10.11.11.0",
+        "sourceUrl": "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.3-test/WatchWheel-1.0.2.3.zip",
+        "checksum": "0ab45674331bc93588ceb56129b84064",
+        "timestamp": "2026-09-26T10:37:51Z"
+      }
+    ]
+  }
+]
