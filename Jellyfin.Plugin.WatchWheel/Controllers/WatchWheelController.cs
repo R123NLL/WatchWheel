@@ -52,7 +52,7 @@ public class WatchWheelController : ControllerBase
     {
         var contentType = asset switch
         {
-            "popcorn-vector.svg" or "popcorn-kernel.svg" => "image/svg+xml",
+            "popcorn-vector.svg" or "popcorn-kernel.svg" or "classic-atmosphere.svg" => "image/svg+xml",
             "cinematic_popcorn_reveal_stage.png" or "golden_star_popcorn_bucket.png" or "golden_popcorn_explosion_tub.png" => "image/png",
             "popcorn-spin-start-v2.wav" or "popcorn-reel-tick-v2.wav" or "popcorn-slow-tick-v2.wav" or "popcorn-stop-v2.wav" or "popcorn-reveal-v2.wav" => "audio/wav",
             _ => null

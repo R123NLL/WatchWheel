@@ -25,11 +25,18 @@ const nextFrame = async (e, now) => {
     assert.match(html, /<option value="popcorn">Popcorn<\/option>/);
     assert.match(js, /var winner = state\.items\[index\]/);
     const art = ['cinematic_popcorn_reveal_stage.png', 'popcorn-vector.svg', 'popcorn-kernel.svg'];
+    const classicArt = 'classic-atmosphere.svg';
     const sfx = ['spin-start', 'reel-tick', 'slow-tick', 'stop', 'reveal'].map(x => 'popcorn-' + x + '-v2.wav');
     for (const name of [...art, ...sfx]) {
         assert(fs.statSync(path.join(plugin, 'Web/Assets', name)).size > 300, `${name} is bundled`);
         assert(controller.includes(`"${name}"`), `${name} is served with an explicit MIME type`);
     }
+    assert(fs.statSync(path.join(plugin, 'Web/Assets', classicArt)).size > 300, 'Classic atmosphere is bundled');
+    assert(controller.includes(`"${classicArt}"`), 'Classic atmosphere is explicitly served');
+    assert(css.includes(`Assets/${classicArt}`), 'Classic atmosphere is visibly used');
+    assert.match(css, /\.wwAtmosphereLayer\s*\{[^}]*transition:\s*opacity 300ms ease/s, 'mode environments crossfade without moving the UI');
+    assert.match(css, /\.pcPoster\s*\{[^}]*bottom:\s*265px/s, 'Popcorn poster rests higher above the bucket');
+    assert(!js.includes('The reel has chosen.'), 'redundant Popcorn result sentence is removed');
     for (const name of art) assert(css.includes(`Assets/${name}`), `${name} is visibly used`);
     const svg=fs.readFileSync(path.join(plugin,'Web/Assets/popcorn-vector.svg'),'utf8');
     assert(!/<image|data:image/i.test(svg),'original vector geometry, no raster wrapper');

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="room" x2="0" y2="1">
+      <stop stop-color="#17120f"/><stop offset=".56" stop-color="#0b0b0d"/><stop offset="1" stop-color="#050608"/>
+    </linearGradient>
+    <linearGradient id="wood" x2="1">
+      <stop stop-color="#100b09"/><stop offset=".5" stop-color="#352116"/><stop offset="1" stop-color="#100b09"/>
+    </linearGradient>
+    <linearGradient id="floor" x2="0" y2="1">
+      <stop stop-color="#28150e"/><stop offset=".22" stop-color="#0b0909"/><stop offset="1" stop-color="#030405"/>
+    </linearGradient>
+    <radialGradient id="amber">
+      <stop stop-color="#ffe1a0" stop-opacity=".95"/><stop offset=".2" stop-color="#f6a841" stop-opacity=".62"/><stop offset=".58" stop-color="#8b4016" stop-opacity=".18"/><stop offset="1" stop-color="#3d1c0c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="calm">
+      <stop stop-color="#171515"/><stop offset=".62" stop-color="#0a0a0c" stop-opacity=".84"/><stop offset="1" stop-color="#030405" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="10"/></filter>
+    <pattern id="panels" width="180" height="620" patternUnits="userSpaceOnUse">
+      <rect width="180" height="620" fill="url(#wood)"/>
+      <path d="M18 0V620M162 0V620" stroke="#a05b24" stroke-opacity=".23" stroke-width="4"/>
+      <path d="M31 36H149V580H31Z" fill="none" stroke="#d28a39" stroke-opacity=".15" stroke-width="3"/>
+      <path d="M43 54H137V562H43Z" fill="#080708" fill-opacity=".58"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#room)"/>
+  <rect width="1920" height="700" fill="url(#panels)" opacity=".82"/>
+  <path d="M0 82H1920M0 665H1920" stroke="#c77931" stroke-opacity=".2" stroke-width="8"/>
+  <path d="M0 705L1920 705 1920 1080 0 1080Z" fill="url(#floor)"/>
+  <path d="M0 740L1920 740M0 810L1920 810M0 900L1920 900" stroke="#c77631" stroke-opacity=".1" stroke-width="3"/>
+  <path d="M960 705L700 1080M960 705L1220 1080M510 705L260 1080M1410 705L1660 1080" stroke="#d28a3b" stroke-opacity=".12" stroke-width="4"/>
+  <ellipse cx="960" cy="445" rx="670" ry="520" fill="url(#calm)"/>
+  <g opacity=".9">
+    <g transform="translate(145 160)">
+      <ellipse cx="0" cy="92" rx="210" ry="250" fill="url(#amber)" filter="url(#soft)"/>
+      <path d="M-14 24H14L28 103-28 103Z" fill="#ffd990"/><rect x="-7" y="103" width="14" height="68" rx="5" fill="#8d542a"/>
+    </g>
+    <g transform="translate(1775 160)">
+      <ellipse cx="0" cy="92" rx="210" ry="250" fill="url(#amber)" filter="url(#soft)"/>
+      <path d="M-14 24H14L28 103-28 103Z" fill="#ffd990"/><rect x="-7" y="103" width="14" height="68" rx="5" fill="#8d542a"/>
+    </g>
+    <g transform="translate(350 355) scale(.72)"><ellipse rx="175" ry="205" fill="url(#amber)" filter="url(#soft)"/><path d="M-13-45H13L26 30-26 30Z" fill="#efbd6c"/></g>
+    <g transform="translate(1570 355) scale(.72)"><ellipse rx="175" ry="205" fill="url(#amber)" filter="url(#soft)"/><path d="M-13-45H13L26 30-26 30Z" fill="#efbd6c"/></g>
+  </g>
+  <g fill="#210e11" stroke="#5d2824" stroke-width="8">
+    <path d="M0 892Q58 823 176 855Q258 878 300 977L300 1080H0Z"/>
+    <path d="M1920 892Q1862 823 1744 855Q1662 878 1620 977L1620 1080H1920Z"/>
+  </g>
+  <g fill="#d58b3a" opacity=".28">
+    <circle cx="62" cy="476" r="5"/><circle cx="225" cy="587" r="3"/><circle cx="313" cy="193" r="4"/>
+    <circle cx="1858" cy="476" r="5"/><circle cx="1695" cy="587" r="3"/><circle cx="1607" cy="193" r="4"/>
+  </g>
+  <rect width="1920" height="1080" fill="none" stroke="#000" stroke-opacity=".72" stroke-width="130"/>
+</svg>

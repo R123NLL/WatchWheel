@@ -1190,7 +1190,7 @@
                     card.classList.remove('wwPopcornPreparing');
                     card.classList.add('wwPopcornWinner');
                     rememberWinner(winner);
-                    message('The reel has chosen.');
+                    message('');
                     wheelSound.popcornWin();
                 }
                 if (revealed && now - revealStarted >= revealDuration) { finish(); return; }
