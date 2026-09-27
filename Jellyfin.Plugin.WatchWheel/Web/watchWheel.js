@@ -12,7 +12,7 @@
             launch: 'spin-launch.wav', fast: 'reel-pass-fast.wav', slow: 'reel-pass-slow.wav',
             lock: 'winner-lock.wav', reveal: 'winner-reveal.wav'
         };
-        var popcornGains = { launch: .55, fast: .18, slow: .28, lock: .44, reveal: .78 };
+        var popcornGains = { launch: .55, fast: .18, slow: .28, lock: .44, reveal: .656 };
         var popcornPoolSizes = { launch: 1, fast: 3, slow: 3, lock: 1, reveal: 1 };
         var popcornDurations = { launch: 520, fast: 205, slow: 528, lock: 330, reveal: 1520 };
         function silencePopcorn(immediate) {
@@ -292,7 +292,7 @@
     // Reference presentation timings. Winner selection and candidate order never use these values.
     var POPCORN_TIMING = {
         launchEnd: 200, travelEnd: 2200, dragEnd: 4000, lock: 4220,
-        burstDelay: 150, reveal: 960, crossingTickGap: 125
+        burstDelay: 150, revealSoundDelay: 120, reveal: 960, crossingTickGap: 125
     };
     var POPCORN_VISUAL = { target: 39, centerWindow: .48 };
 
@@ -1246,11 +1246,13 @@
 
         function spinPopcorn(winner, winnerIndex, token) {
             var reduced = reducedMotion(), lockAt = reduced ? 0 : POPCORN_TIMING.lock;
-            var burstAt = lockAt + POPCORN_TIMING.burstDelay, revealDuration = reduced ? 360 : POPCORN_TIMING.reveal;
+            var burstAt = lockAt + POPCORN_TIMING.burstDelay;
+            var revealDuration = reduced ? 360 : POPCORN_TIMING.reveal;
             var started = performance.now();
             var stage = byId('wwPopcornStage');
             var card = byId('pcwinnerCard'), poster = byId('pcwwPosterOrigin');
-            var lastSlot = 0, lastTickAt = -1000, locked = false, revealed = false, revealStarted = 0;
+            var lastSlot = 0, lastTickAt = -1000, locked = false, revealed = false;
+            var revealSoundPlayed = false, revealStarted = 0;
             // Populate and lay out once before movement. The same poster is used throughout;
             // no display swap or image assignment happens at the burst.
             card.classList.add('wwPopcornPreparing');
@@ -1309,6 +1311,9 @@
                     card.classList.add('wwPopcornWinner');
                     rememberWinner(winner);
                     message('');
+                }
+                if (revealed && !revealSoundPlayed && now - revealStarted >= POPCORN_TIMING.revealSoundDelay) {
+                    revealSoundPlayed = true;
                     wheelSound.popcornWin();
                 }
                 if (revealed && now - revealStarted >= revealDuration) { finish(); return; }

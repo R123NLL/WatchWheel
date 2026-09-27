@@ -153,7 +153,11 @@ const nextFrame = async (e, now) => {
     await nextFrame(reveal, 4370);
     assert(reveal.els.wwPopcornStage.classes.has('wwRevealing'));
     assert(!reveal.els.pcwinnerCard.classes.has('hidden'));
+    assert(!reveal.audio.some(e => e.url.endsWith('winner-reveal.wav')), 'visual reveal starts before the delayed audio');
     const historyAtBurst = JSON.parse(reveal.saved[key]).history.length;
+    await nextFrame(reveal, 4489);
+    assert(!reveal.audio.some(e => e.url.endsWith('winner-reveal.wav')), 'reveal cue waits for the full audio offset');
+    await nextFrame(reveal, 4490);
     await nextFrame(reveal, 5329);
     assert(reveal.els.pcwwPlay.disabled, 'Popcorn actions locked through their final fade');
     assert.equal(JSON.parse(reveal.saved[key]).history.length, historyAtBurst, 'reveal records once');
@@ -164,14 +168,14 @@ const nextFrame = async (e, now) => {
     assert.equal(reveal.audio.filter(e => e.url.endsWith('winner-lock.wav')).length, 1, 'single lock cue');
     assert.equal(reveal.audio.filter(e => e.url.endsWith('winner-reveal.wav')).length, 1, 'single reveal cue');
     assert.equal(reveal.audio.find(e => e.url.endsWith('winner-lock.wav')).time, 4220);
-    assert.equal(reveal.audio.find(e => e.url.endsWith('winner-reveal.wav')).time, 4370);
+    assert.equal(reveal.audio.find(e => e.url.endsWith('winner-reveal.wav')).time, 4490);
 
     const repeated = make({items: titles(2), reduced: false}); await repeated.start();
     repeated.els.wwSkin.value='popcorn'; await repeated.fire('wwSkin','change');
     for(let spin=0;spin<5;spin++) {
         await repeated.fire('wwSpin');
         for(let time=0;time<=4350;time+=100) await nextFrame(repeated,time);
-        await nextFrame(repeated,4370); await nextFrame(repeated,5330);
+        await nextFrame(repeated,4370); await nextFrame(repeated,4490); await nextFrame(repeated,5330);
         assert.equal(reelSize(repeated),15); assert.equal(repeated.els.wwPopcornBurst.children.length,22);
         assert.equal(repeated.frames.length,0);
     }
@@ -179,18 +183,19 @@ const nextFrame = async (e, now) => {
 
     const leave = make({items: titles(2), reduced: false}); await leave.start();
     leave.els.wwSkin.value='popcorn'; await leave.fire('wwSkin','change'); await leave.fire('wwSpin');
-    await nextFrame(leave,4250); leave.captures.viewhide();
+    await nextFrame(leave,4400); leave.captures.viewhide();
     while(leave.frames.length) await nextFrame(leave,10000);
     assert(leave.els.pcwinnerCard.classes.has('hidden'),'leaving page clears unrevealed pick');
     assert(!leave.audio.some(e=>e.url.endsWith('winner-reveal.wav')),'leaving cannot play delayed flourish');
 
-    for (const time of [100, 3990, 4230, 4500, 5250]) {
+    for (const time of [100, 3990, 4230, 4400, 4500, 5250]) {
         const e = make({items: titles(2), reduced: false}); await e.start();
         e.els.wwSkin.value='popcorn'; await e.fire('wwSkin','change'); await e.fire('wwSpin');
         await nextFrame(e,time);
         e.els.wwSkin.value='classic'; await e.fire('wwSkin','change');
         while(e.frames.length) await nextFrame(e,10000);
         assert(e.els.pcwinnerCard.classes.has('hidden'), 'interruption clears prepared/revealing winner at '+time);
+        if (time < 4490) assert(!e.audio.some(x=>x.url.endsWith('winner-reveal.wav')), 'interrupted spin cannot fire delayed reveal at '+time);
         assert(!e.page.classList.contains('wwPopcornRunning'));
         assert(!e.els.wwSpin.disabled);
     }
