@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const path=require('path');
 const root=path.resolve(__dirname,'../Jellyfin.Plugin.WatchWheel/Web')+path.sep;
-const html=fs.readFileSync(root+'watchWheel.html','utf8'),js=fs.readFileSync(root+'watchWheel.js','utf8');
+const html=fs.readFileSync(root+'watchWheel.html','utf8'),js=fs.readFileSync(root+'watchWheel.js','utf8'),css=fs.readFileSync(root+'watchWheel.css','utf8');
 class E{constructor(){this.value='';this.checked=false;this.disabled=false;this.style={setProperty(k,v){this[k]=v;}};this.children=[];this.events={};this.attrs={};this.classes=new Set();this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),toggle:(c,b)=>b?this.classes.add(c):this.classes.delete(c),contains:c=>this.classes.has(c)};}set textContent(v){this.text=v;this.children=[];}get textContent(){return this.text;}get options(){return this.children;}appendChild(c){this.children.push(c);}addEventListener(n,f){this.events[n]=f;}setAttribute(k,v){this.attrs[k]=v;}getAttribute(k){return this.attrs[k];}focus(){}scrollIntoView(){}getBoundingClientRect(){return{left:100,top:100,bottom:400,width:200,height:300};}contains(target){return this===target;}querySelectorAll(selector){if(selector==='input[type="checkbox"]')return this.children.flatMap(x=>x.children||[]).filter(x=>x.type==='checkbox');if(selector==='input:checked')return this.querySelectorAll('input[type="checkbox"]').filter(x=>x.checked);return [];}}
 const tick=async()=>{await new Promise(setImmediate);await new Promise(setImmediate)};
 function make({saved={},blocked=false,items:providedItems,reduced=true}={}){
@@ -39,17 +39,17 @@ if(require.main===module)(async()=>{
  let sound=make();await sound.start();await sound.fire('wwSound');assert.equal(sound.els.wwSound.attrs['aria-pressed'],'false');let restored=make({saved:sound.saved});await restored.start();assert.equal(restored.els.wwSound.attrs['aria-pressed'],'false');await restored.spin();assert(!restored.els.winnerCard.classes.has('hidden'));
  let assign=make();assign.watchers=[{Id:'wa',Name:'A'},{Id:'wb',Name:'B'}];await assign.start();for(let i=0;i<12&&(assign.els.wwWatcher.options.length<3||assign.els.wwSpin.disabled);i++)await tick();assert.equal(assign.els.wwWatcher.options.length,3,'configured watchers loaded');const first=assign.els.wwCandidateList.children[0];assert(first&&first.children.length===3,'candidate row includes the watcher action');await first.children[2].events.click();await tick();assert.equal(assign.els.wwAssignmentOptions.children.length,2);await assign.fire('wwAssignAll');assert(assign.els.wwAssignmentOptions.children.every(label=>label.children[0].checked));assert.equal(assign.commands.length,0,'Assign to All stages only');assign.els.wwAssignmentOptions.children[0].children[0].checked=false;await assign.fire('wwAssignmentSave');assert.equal(assign.commands.at(-1).type,'PUT');assert.deepEqual(JSON.parse(assign.commands.at(-1).data).WatcherIds,['wb']);
  let noWatchers=make();await noWatchers.start();assert(noWatchers.els.wwCandidateList.children[0].children[2].disabled);assert.match(html,/id="wwAssignAll"[^>]*disabled/);
- let settings=make();await settings.start();
- await settings.fire('wwSettingsButton');assert(!settings.els.wwSettingsPanel.classList.contains('hidden'));
- const nestedSelect=new E(),nativeOption=new E(),nestedInput=new E();nestedSelect.appendChild(nativeOption);settings.els.wwSettingsPanel.appendChild(nestedSelect);settings.els.wwSettingsPanel.appendChild(nestedInput);
- settings.captures.pointerdown({target:nativeOption,composedPath:()=>[nativeOption,nestedSelect,settings.els.wwSettingsPanel,settings.page]});
- assert(!settings.els.wwSettingsPanel.classList.contains('hidden'),'native select option keeps settings open');
- settings.captures.pointerdown({target:nestedInput,composedPath:()=>[nestedInput,settings.els.wwSettingsPanel,settings.page]});
- assert(!settings.els.wwSettingsPanel.classList.contains('hidden'),'nested input keeps settings open');
- settings.captures.pointerdown({target:settings.els.wwSettingsButton,composedPath:()=>[settings.els.wwSettingsButton,settings.page]});
- assert(!settings.els.wwSettingsPanel.classList.contains('hidden'),'Settings button is not treated as outside');
- const outside=new E();settings.captures.pointerdown({target:outside,composedPath:()=>[outside,settings.page]});
- assert(settings.els.wwSettingsPanel.classList.contains('hidden'),'outside pointer closes settings');
+ let settings=make();settings.watchers=[{Id:'wa',Name:'A'}];await settings.start();const settingsShell=settings.els.wwSettingsPanel;
+ assert.match(css,/\.wwSettingsBackdrop\s*\{[^}]*z-index:\s*19[^}]*pointer-events:\s*auto/s,'real backdrop intercepts outside clicks below Settings');
+ assert.match(css,/\.wwSettingsPanel\s*\{[^}]*z-index:\s*20/s,'Settings panel remains above backdrop');
+ assert.match(css,/\.wwAtmosphere\s*\{[^}]*pointer-events:\s*none/s,'decorative atmosphere cannot intercept controls');
+ await settings.fire('wwSettingsButton');assert(!settingsShell.classList.contains('hidden'));assert(!settings.els.wwSettingsBackdrop.classList.contains('hidden'));
+ assert.equal(settings.captures.pointerdown,undefined,'no page-level pointer dismissal remains');
+ await settings.fire('wwSound');assert(!settingsShell.classList.contains('hidden'),'normal Settings control keeps shell open');
+ settings.els.wwSkin.value='popcorn';await settings.fire('wwSkin','change');assert(!settingsShell.classList.contains('hidden'),'native select change keeps shell open');
+ settings.els.wwWatcherName.value='New watcher';await settings.fire('wwWatcherCreate','submit');assert(!settingsShell.classList.contains('hidden'),'watcher Create keeps shell open');assert.strictEqual(settings.els.wwSettingsPanel,settingsShell,'watcher rerender preserves outer Settings shell');
+ settings.els.wwShowChoices.checked=false;await settings.fire('wwShowChoices','change');assert(!settingsShell.classList.contains('hidden'),'nested toggle keeps shell open');
+ await settings.fire('wwSettingsBackdrop');assert(settingsShell.classList.contains('hidden'),'backdrop closes settings');assert(settings.els.wwSettingsBackdrop.classList.contains('hidden'));
  await settings.fire('wwSettingsButton');settings.els.wwSettingsPanel.events.keydown({key:'Escape'});assert(settings.els.wwSettingsPanel.classList.contains('hidden'),'Escape closes settings');
  await settings.fire('wwSettingsButton');await settings.fire('wwSettingsClose');assert(settings.els.wwSettingsPanel.classList.contains('hidden'),'Close closes settings');
  console.log('PASS: Cinema media selectors, apply/reset, browse tabs and arrow keys, winner placeholder.');

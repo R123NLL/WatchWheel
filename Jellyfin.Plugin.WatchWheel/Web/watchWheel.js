@@ -471,12 +471,13 @@
         }
 
         function setSettingsOpen(open) {
-            var panel = byId('wwSettingsPanel');
+            var panel = byId('wwSettingsPanel'), backdrop = byId('wwSettingsBackdrop');
+            backdrop.classList.toggle('hidden', !open);
+            backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
             panel.classList.toggle('hidden', !open);
             panel.setAttribute('aria-hidden', open ? 'false' : 'true');
             byId('wwSettingsButton').setAttribute('aria-expanded', open ? 'true' : 'false');
             wheelSound.effect(open ? 'settings-open' : 'button-click');
-            page.classList.toggle('wwSettingsOpen', open);
             (open ? byId('wwSettingsClose') : byId('wwSettingsButton')).focus();
         }
 
@@ -1278,18 +1279,10 @@
                 if (soundEnabled) wheelSound.prime();
             });
             byId('wwSettingsButton').addEventListener('click', function () { setSettingsOpen(true); });
+            byId('wwSettingsBackdrop').addEventListener('click', function () { setSettingsOpen(false); });
             byId('wwSettingsClose').addEventListener('click', function () { setSettingsOpen(false); });
             byId('wwSettingsPanel').addEventListener('keydown', function (event) {
                 if (event.key === 'Escape') setSettingsOpen(false);
-            });
-            page.addEventListener('pointerdown', function (event) {
-                var panel = byId('wwSettingsPanel'), button = byId('wwSettingsButton');
-                var path = typeof event.composedPath === 'function' ? event.composedPath() : [];
-                var inside = path.indexOf(panel) !== -1 || path.indexOf(button) !== -1
-                    || panel.contains(event.target) || button.contains(event.target);
-                if (!panel.classList.contains('hidden') && !inside) {
-                    setSettingsOpen(false);
-                }
             });
             byId('wwShowChoices').addEventListener('change', function () {
                 showChoices = byId('wwShowChoices').checked;

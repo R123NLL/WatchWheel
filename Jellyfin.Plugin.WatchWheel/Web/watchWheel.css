@@ -314,12 +314,12 @@
     transform-origin: top center;
     animation: wwSettingsIn 240ms ease both;
 }
-#WatchWheelPage.wwSettingsOpen::before {
-    content: "";
+#WatchWheelPage .wwSettingsBackdrop {
     position: fixed;
     z-index: 19;
     inset: 0;
     background: transparent;
+    pointer-events: auto;
 }
 #WatchWheelPage .wwSettingsHeading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 #WatchWheelPage .wwSettingsHeading h2 { margin: 0; font-size: 1.05rem; color: #e9d4aa; }
