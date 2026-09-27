@@ -9,12 +9,12 @@
         "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
         "versions":  [
                          {
-                             "version":  "1.0.2.7",
-                             "changelog":  "TEST BUILD: refined Popcorn winner staging, improved poster placement, Classic luxury theater atmosphere, and smooth mode background transitions.",
+                             "version":  "1.0.2.8",
+                             "changelog":  "TEST BUILD: Classic theater atmosphere, refined Popcorn winner staging, smoother mode transitions, and Settings interaction fix.",
                              "targetAbi":  "10.11.11.0",
-                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.7-test/WatchWheel-1.0.2.7.zip",
-                             "checksum":  "feb94e82e1e19ab6a7d60cfb4b3a822b",
-                             "timestamp":  "2026-09-27T08:55:29Z"
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.8-test/WatchWheel-1.0.2.8.zip",
+                             "checksum":  "509c0053d17aedd6a09475b4541e0b3d",
+                             "timestamp":  "2026-09-27T10:36:30Z"
                          }
                      ]
     }
