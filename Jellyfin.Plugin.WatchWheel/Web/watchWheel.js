@@ -9,17 +9,42 @@
         var audio = null, buffers = null, ready = null, voices = [], popcorn = {};
         var enabled = true, allowed = false, epoch = 0;
         var popcornFiles = {
-            start: 'popcorn-spin-start-v2.wav', tick: 'popcorn-reel-tick-v2.wav',
-            slow: 'popcorn-slow-tick-v2.wav', settle: 'popcorn-stop-v2.wav', reveal: 'popcorn-reveal-v2.wav'
+            launch: 'spin-launch.wav', fast: 'reel-pass-fast.wav', slow: 'reel-pass-slow.wav',
+            lock: 'winner-lock.wav', reveal: 'winner-reveal.wav'
         };
-        var popcornGains = { start: .52, tick: .20, slow: .32, settle: .48, reveal: .72 };
-        function stop() {
+        var popcornGains = { launch: .55, fast: .18, slow: .28, lock: .44, reveal: .78 };
+        var popcornPoolSizes = { launch: 1, fast: 3, slow: 3, lock: 1, reveal: 1 };
+        var popcornDurations = { launch: 520, fast: 205, slow: 528, lock: 330, reveal: 1520 };
+        function silencePopcorn(immediate) {
+            var fading = popcorn;
+            popcorn = {};
+            Object.keys(fading).forEach(function (key) {
+                fading[key].voices.forEach(function (voice) {
+                    var clip = voice.clip;
+                    var active = voice.busyUntil > performance.now() && clip.paused !== true;
+                    if (!active || immediate) {
+                        try { clip.pause(); clip.currentTime = 0; } catch (ignore) {}
+                        return;
+                    }
+                    var initial = clip.volume;
+                    for (var step = 1; step <= 4; step++) {
+                        (function (amount) {
+                            setTimeout(function () {
+                                try {
+                                    clip.volume = initial * (1 - amount / 4);
+                                    if (amount === 4) { clip.pause(); clip.currentTime = 0; }
+                                } catch (ignore) {}
+                            }, amount * 20);
+                        })(step);
+                    }
+                });
+            });
+        }
+        function stop(immediate) {
             epoch++;
             voices.forEach(function (voice) { try { voice.stop(); voice.disconnect(); } catch (ignore) {} });
             voices = [];
-            Object.keys(popcorn).forEach(function (key) {
-                try { popcorn[key].pause(); popcorn[key].currentTime = 0; } catch (ignore) {}
-            });
+            silencePopcorn(immediate === true);
         }
         function preparePopcorn() {
             if (typeof window.Audio !== 'function') return;
@@ -28,25 +53,47 @@
                 var path = 'WatchWheel/Assets/' + popcornFiles[key];
                 var url = window.ApiClient && typeof window.ApiClient.getUrl === 'function'
                     ? window.ApiClient.getUrl(path) : '../' + path;
-                var clip = new window.Audio(url);
-                clip.preload = 'auto';
-                clip.volume = popcornGains[key];
-                popcorn[key] = clip;
+                var bank = { voices: [], cursor: 0 };
+                for (var i = 0; i < popcornPoolSizes[key]; i++) {
+                    var clip = new window.Audio(url);
+                    var voice = { clip: clip, busyUntil: 0 };
+                    clip.preload = 'auto';
+                    clip.volume = popcornGains[key];
+                    if (typeof clip.addEventListener === 'function') {
+                        (function (entry) {
+                            clip.addEventListener('ended', function () { entry.busyUntil = 0; });
+                        })(voice);
+                    }
+                    bank.voices.push(voice);
+                }
+                popcorn[key] = bank;
             });
         }
         function playPopcorn(key, duck) {
             if (!enabled || !allowed || document.hidden) return;
             preparePopcorn();
-            var clip = popcorn[key];
-            if (!clip) return;
+            var bank = popcorn[key];
+            if (!bank) return;
             try {
-                // One tick voice; the launch bed may continue quietly underneath.
-                if (key === 'tick' || key === 'slow') {
-                    ['tick', 'slow'].forEach(function (name) { popcorn[name].pause(); });
+                var now = performance.now(), voice = null;
+                for (var offset = 0; offset < bank.voices.length; offset++) {
+                    var index = (bank.cursor + offset) % bank.voices.length;
+                    var candidate = bank.voices[index];
+                    if (candidate.busyUntil <= now || candidate.clip.ended === true || candidate.clip.paused === true) {
+                        voice = candidate;
+                        bank.cursor = (index + 1) % bank.voices.length;
+                        break;
+                    }
                 }
+                // A saturated pool drops the cue instead of chopping a voice that is still decaying.
+                if (!voice) return;
+                var clip = voice.clip;
                 clip.volume = popcornGains[key] * (duck ? .65 : 1);
-                clip.pause(); clip.currentTime = 0;
+                clip.currentTime = 0;
                 var started = clip.play();
+                var duration = Number.isFinite(clip.duration) && clip.duration > 0
+                    ? clip.duration * 1000 : popcornDurations[key];
+                voice.busyUntil = now + duration;
                 if (started && typeof started.catch === 'function') started.catch(function () {});
             } catch (ignore) { /* Missing audio never blocks the reel. */ }
         }
@@ -95,23 +142,17 @@
         return {
             prime: prime,
             preparePopcorn: preparePopcorn,
-            enabled: function (value) { enabled = value; if (!enabled) stop(); },
+            enabled: function (value) { enabled = value; if (!enabled) stop(true); },
             effect: function () { /* Reserved for approved shared UI effects. */ },
             spin: function (duration) { if (duration > 0) play(0, duration); },
             win: function () { stop(); play(1, 0); },
-            popcornSpin: function (duration) { if (duration > 0) playPopcorn('start'); },
-            popcornTick: function (slow, duck) { playPopcorn(slow ? 'slow' : 'tick', duck); },
-            popcornSettle: function () { stop(); playPopcorn('settle'); },
-            popcornLockFade: function (gain) {
-                if (popcorn.settle) {
-                    popcorn.settle.volume = popcornGains.settle * gain;
-                    if (gain === 0) popcorn.settle.pause();
-                }
-            },
-            popcornWin: function () { stop(); playPopcorn('reveal'); },
+            popcornSpin: function (duration) { if (duration > 0) playPopcorn('launch'); },
+            popcornTick: function (slow, duck) { playPopcorn(slow ? 'slow' : 'fast', duck); },
+            popcornSettle: function () { playPopcorn('lock'); },
+            popcornWin: function () { playPopcorn('reveal'); },
             stop: stop,
             close: function () {
-                allowed = false; stop();
+                allowed = false; stop(true);
                 if (audio) { try { audio.close().catch(function () {}); } catch (ignore) {} }
                 audio = null; ready = null; popcorn = {};
             }
@@ -1257,11 +1298,6 @@
                         stage.classList.add('wwSettling');
                         stage.setAttribute('data-motion', 'anticipation');
                     }
-                }
-                if (locked && !revealed) {
-                    // Shorten the V2 lock's long reverb with a 70 ms fade, then silence.
-                    var fade = Math.max(0, Math.min(1, (elapsed - lockAt - 45) / 70));
-                    wheelSound.popcornLockFade(1 - fade * fade * (3 - 2 * fade));
                 }
                 if (!revealed && elapsed >= burstAt) {
                     revealed = true; revealStarted = now;

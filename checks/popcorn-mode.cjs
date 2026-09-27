@@ -26,7 +26,7 @@ const nextFrame = async (e, now) => {
     assert.match(js, /var winner = state\.items\[index\]/);
     const art = ['cinematic_popcorn_reveal_stage.png', 'popcorn-vector.svg', 'popcorn-kernel.svg'];
     const classicArt = 'classic-atmosphere.svg';
-    const sfx = ['spin-start', 'reel-tick', 'slow-tick', 'stop', 'reveal'].map(x => 'popcorn-' + x + '-v2.wav');
+    const sfx = ['spin-launch.wav', 'reel-pass-fast.wav', 'reel-pass-slow.wav', 'winner-lock.wav', 'winner-reveal.wav'];
     for (const name of [...art, ...sfx]) {
         assert(fs.statSync(path.join(plugin, 'Web/Assets', name)).size > 300, `${name} is bundled`);
         assert(controller.includes(`"${name}"`), `${name} is served with an explicit MIME type`);
@@ -44,8 +44,7 @@ const nextFrame = async (e, now) => {
         assert(svg.includes(`id="${part}"`),`addressable vector part ${part}`);
     }
     for (const name of sfx) assert(js.includes(`'${name}'`), `${name} is wired to sound events`);
-    assert(fs.existsSync(path.join(plugin, 'Web/Assets/README-v2.txt')));
-    assert(!/['"]popcorn-(?:spin-start|reel-tick|slow-tick|stop|reveal)\.wav/.test(js), 'old audio is inactive');
+    assert(!/['"]popcorn-(?:spin-start|reel-tick|slow-tick|stop|reveal)(?:-v2)?\.wav/.test(js), 'old audio is inactive');
     const motion = {};
     vm.runInNewContext(js.slice(js.indexOf('    var POPCORN_TIMING'), js.indexOf('    function createApp(')) + ';this.phase=popcornPhase;this.timing=POPCORN_TIMING;', motion);
     const speed = t => (motion.phase(t + .1) - motion.phase(t - .1)) / .2;
@@ -162,10 +161,10 @@ const nextFrame = async (e, now) => {
     assert(!reveal.els.wwPopcornStage.classes.has('wwRevealing'));
     assert(!reveal.els.wwSpin.disabled);
     assert.equal(reveal.frames.length, 0, 'one clock drains completely');
-    assert.equal(reveal.audio.filter(e => e.url.endsWith('popcorn-stop-v2.wav')).length, 1, 'single lock cue');
-    assert.equal(reveal.audio.filter(e => e.url.endsWith('popcorn-reveal-v2.wav')).length, 1, 'single reveal cue');
-    assert.equal(reveal.audio.find(e => e.url.endsWith('popcorn-stop-v2.wav')).time, 4220);
-    assert.equal(reveal.audio.find(e => e.url.endsWith('popcorn-reveal-v2.wav')).time, 4370);
+    assert.equal(reveal.audio.filter(e => e.url.endsWith('winner-lock.wav')).length, 1, 'single lock cue');
+    assert.equal(reveal.audio.filter(e => e.url.endsWith('winner-reveal.wav')).length, 1, 'single reveal cue');
+    assert.equal(reveal.audio.find(e => e.url.endsWith('winner-lock.wav')).time, 4220);
+    assert.equal(reveal.audio.find(e => e.url.endsWith('winner-reveal.wav')).time, 4370);
 
     const repeated = make({items: titles(2), reduced: false}); await repeated.start();
     repeated.els.wwSkin.value='popcorn'; await repeated.fire('wwSkin','change');
@@ -176,14 +175,14 @@ const nextFrame = async (e, now) => {
         assert.equal(reelSize(repeated),15); assert.equal(repeated.els.wwPopcornBurst.children.length,22);
         assert.equal(repeated.frames.length,0);
     }
-    assert.equal(repeated.audio.filter(e=>e.url.endsWith('popcorn-reveal-v2.wav')).length,5,'one flourish per repeated spin');
+    assert.equal(repeated.audio.filter(e=>e.url.endsWith('winner-reveal.wav')).length,5,'one flourish per repeated spin');
 
     const leave = make({items: titles(2), reduced: false}); await leave.start();
     leave.els.wwSkin.value='popcorn'; await leave.fire('wwSkin','change'); await leave.fire('wwSpin');
     await nextFrame(leave,4250); leave.captures.viewhide();
     while(leave.frames.length) await nextFrame(leave,10000);
     assert(leave.els.pcwinnerCard.classes.has('hidden'),'leaving page clears unrevealed pick');
-    assert(!leave.audio.some(e=>e.url.endsWith('popcorn-reveal-v2.wav')),'leaving cannot play delayed flourish');
+    assert(!leave.audio.some(e=>e.url.endsWith('winner-reveal.wav')),'leaving cannot play delayed flourish');
 
     for (const time of [100, 3990, 4230, 4500, 5250]) {
         const e = make({items: titles(2), reduced: false}); await e.start();
@@ -196,5 +195,5 @@ const nextFrame = async (e, now) => {
         assert(!e.els.wwSpin.disabled);
     }
 
-    console.log('PASS: V2 assets, continuous motion/settle, crossing cadence, 15-box bound, prepared poster, staged reveal/action lock, reduced sequence, single reveal and interruption cleanup.');
+    console.log('PASS: approved SFX assets, continuous motion/settle, crossing cadence, 15-box bound, prepared poster, staged reveal/action lock, reduced sequence, single reveal and interruption cleanup.');
 })().catch(error => { console.error(error); process.exit(1); });
