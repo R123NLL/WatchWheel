@@ -894,3 +894,68 @@
     #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornParticle,
     #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornFlare { animation: none; opacity: 0; }
 }
+
+/* Community-rating rarity is an independent aura behind the unchanged bucket art. */
+#WatchWheelPage [data-rarity="blue"] { --ww-rarity-rgb: 36,156,255; --ww-rarity-strength: .58; --ww-rarity-scale: .96; }
+#WatchWheelPage [data-rarity="purple"] { --ww-rarity-rgb: 145,71,255; --ww-rarity-strength: .72; --ww-rarity-scale: 1; }
+#WatchWheelPage [data-rarity="red"] { --ww-rarity-rgb: 227,38,54; --ww-rarity-strength: .84; --ww-rarity-scale: 1.04; }
+#WatchWheelPage [data-rarity="gold"] { --ww-rarity-rgb: 255,185,31; --ww-rarity-strength: 1; --ww-rarity-scale: 1.09; }
+
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
+    --ww-center: 0;
+    isolation: isolate; overflow: visible; border: 0; background: none;
+    box-shadow: none; filter: none;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBucketArt {
+    position: absolute; z-index: 2; inset: 0;
+    background: url("../WatchWheel/Assets/popcorn-vector.svg") center bottom / contain no-repeat;
+    filter: drop-shadow(0 14px 10px rgba(0,0,0,.72));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwRarityAura {
+    position: absolute; z-index: 1; pointer-events: none;
+    left: -24%; top: -20%; width: 148%; height: 142%; overflow: visible;
+    opacity: calc((.27 + var(--ww-center) * .42) * var(--ww-rarity-strength));
+    transform: scale(calc(var(--ww-rarity-scale) + var(--ww-center) * .08));
+    transform-origin: 50% 76%; transition: opacity 90ms linear,transform 90ms linear;
+    filter: drop-shadow(0 0 9px rgba(var(--ww-rarity-rgb),.72));
+}
+#WatchWheelPage .wwRarityHalo {
+    fill: rgba(var(--ww-rarity-rgb),.16); stroke: rgba(var(--ww-rarity-rgb),.8); stroke-width: 4;
+}
+#WatchWheelPage .wwRarityBaseGlow { fill: rgba(var(--ww-rarity-rgb),.75); }
+#WatchWheelPage .wwRaritySpark { fill: rgba(255,248,218,.96); opacity: 0; }
+#WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket .wwRarityAura {
+    opacity: var(--ww-rarity-strength); transform: scale(calc(var(--ww-rarity-scale) + .14));
+    filter: drop-shadow(0 0 15px rgba(var(--ww-rarity-rgb),.92));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket .wwPopcornBucketArt {
+    filter: drop-shadow(0 0 13px rgba(var(--ww-rarity-rgb),.82)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket[data-rarity="gold"] .wwRaritySpark {
+    animation: wwGoldRarityShimmer 620ms ease-out 1 both;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage[data-rarity] .wwPopcornParticle {
+    filter: drop-shadow(0 0 7px rgba(var(--ww-rarity-rgb),.8));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage[data-rarity] .pcMarker {
+    filter: drop-shadow(0 0 10px rgba(var(--ww-rarity-rgb),.85));
+}
+#WatchWheelPage .pcWinnerScene[data-rarity] .pcPoster {
+    box-shadow: 0 0 0 2px rgba(var(--ww-rarity-rgb),.86),
+        0 0 34px rgba(var(--ww-rarity-rgb),.5),0 18px 36px #0009;
+}
+#WatchWheelPage .pcWinnerScene[data-rarity].wwPopcornWinner::before {
+    background: radial-gradient(ellipse at center,rgba(var(--ww-rarity-rgb),.42),rgba(var(--ww-rarity-rgb),.18) 38%,transparent 72%);
+}
+#WatchWheelPage .pcWinnerScene[data-rarity].wwPopcornWinner::after {
+    background: radial-gradient(ellipse,rgba(var(--ww-rarity-rgb),.36),rgba(var(--ww-rarity-rgb),.1) 48%,transparent 74%);
+}
+@keyframes wwGoldRarityShimmer {
+    0% { opacity: 0; transform: scale(.4); }
+    38% { opacity: 1; transform: scale(1.5); }
+    100% { opacity: 0; transform: translate(9px,-12px) scale(.6); }
+}
+@media (prefers-reduced-motion:reduce) {
+    #WatchWheelPage[data-skin="popcorn"] .wwRarityAura { transition: none; }
+    #WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket[data-rarity="gold"] .wwRaritySpark { animation: none; }
+}

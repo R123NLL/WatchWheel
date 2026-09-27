@@ -239,6 +239,15 @@
         }
     }
 
+    function getPopcornRarityTier(rawRating) {
+        var rating = Number(rawRating);
+        if (rawRating == null || !Number.isFinite(rating)) return 'blue';
+        if (rating >= 8.5) return 'gold';
+        if (rating >= 7.5) return 'red';
+        if (rating >= 6.5) return 'purple';
+        return 'blue';
+    }
+
     // The integral of velocity, shared with TV's PopcornMotion: smooth launch,
     // constant travel, quadratic drag, then a tiny zero-velocity settle.
     function popcornPhase(ms) {
@@ -270,14 +279,31 @@
         var reelBoxes = [], REEL_BOX_COUNT = 15, popcornFrame = null, reelStep = 112, reelPhase = 0;
         function createPopcornReel() {
             var reel = byId('wwPopcornReel');
-            var symbols = ['★', '✦', '♥', '◆', '▶', '☽', '✧'];
             for (var i = 0; i < REEL_BOX_COUNT; i++) {
                 var box = document.createElement('div');
                 box.className = 'wwPopcornBox';
                 box.setAttribute('aria-hidden', 'true');
-                var symbol = document.createElement('span');
-                symbol.textContent = symbols[i % symbols.length];
-                box.appendChild(symbol); reel.appendChild(box); reelBoxes.push(box);
+                box.setAttribute('data-rarity', 'blue');
+                var aura = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                aura.setAttribute('class', 'wwRarityAura');
+                aura.setAttribute('viewBox', '0 0 140 180');
+                aura.setAttribute('aria-hidden', 'true');
+                var halo = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                halo.setAttribute('class', 'wwRarityHalo');
+                halo.setAttribute('cx', '70'); halo.setAttribute('cy', '98');
+                halo.setAttribute('rx', '62'); halo.setAttribute('ry', '76');
+                var baseGlow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                baseGlow.setAttribute('class', 'wwRarityBaseGlow');
+                baseGlow.setAttribute('cx', '70'); baseGlow.setAttribute('cy', '158');
+                baseGlow.setAttribute('rx', '52'); baseGlow.setAttribute('ry', '15');
+                var sparkle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                sparkle.setAttribute('class', 'wwRaritySpark');
+                sparkle.setAttribute('cx', '112'); sparkle.setAttribute('cy', '32'); sparkle.setAttribute('r', '4');
+                aura.appendChild(halo); aura.appendChild(baseGlow); aura.appendChild(sparkle);
+                var art = document.createElement('div');
+                art.className = 'wwPopcornBucketArt';
+                art.setAttribute('aria-hidden', 'true');
+                box.appendChild(aura); box.appendChild(art); reel.appendChild(box); reelBoxes.push(box);
             }
             for (var kernel = 0; kernel < 22; kernel++) {
                 var particle = document.createElement('span');
@@ -293,15 +319,28 @@
             renderPopcornReel(0);
         }
 
+        function bindPopcornReel(items, winnerIndex) {
+            var selected = 39 % REEL_BOX_COUNT;
+            var length = items && items.length ? items.length : 0;
+            for (var i = 0; i < reelBoxes.length; i++) {
+                var item = length
+                    ? items[((winnerIndex + i - selected) % length + length) % length]
+                    : null;
+                reelBoxes[i].setAttribute('data-rarity', getPopcornRarityTier(item && value(item, 'CommunityRating')));
+            }
+        }
+
         function renderPopcornReel(phase) {
             reelPhase = phase;
             for (var i = 0; i < reelBoxes.length; i++) {
                 var slot = ((i - phase + REEL_BOX_COUNT * 100) % REEL_BOX_COUNT);
                 if (slot > REEL_BOX_COUNT / 2) slot -= REEL_BOX_COUNT;
                 var emphasis = Math.max(0, 1 - Math.abs(slot) / 1.6);
+                var center = Math.max(0, 1 - Math.abs(slot) / .48);
                 reelBoxes[i].style.transform = 'translate3d(calc(-50% + ' + (slot * reelStep).toFixed(2)
                     + 'px),0,0) scale(' + (1 + emphasis * .32).toFixed(3) + ')';
                 reelBoxes[i].style.zIndex = String(Math.round(emphasis * 5));
+                reelBoxes[i].style.setProperty('--ww-center', center.toFixed(3));
             }
         }
 
@@ -728,6 +767,7 @@
 
         function refreshLocalPool() {
             state.items = eligibleItems(); state.rotation = 0;
+            bindPopcornReel(state.items, 0);
             count(); drawWheel(); syncButtons(); message(poolMessage());
         }
 
@@ -808,6 +848,11 @@
             var byId = winnerElement;
             playbackMessage('');
             state.winner = item;
+            var rarity = getPopcornRarityTier(value(item, 'CommunityRating'));
+            if (activeSkin === 'popcorn') {
+                byId('winnerCard').setAttribute('data-rarity', rarity);
+                page.querySelector('#wwPopcornStage').setAttribute('data-rarity', rarity);
+            }
             var series = isSeries(item);
             var target = playbackTarget(item);
             var code = episodeCode(item);
@@ -1065,6 +1110,7 @@
                     : 'Unable to load ' + (state.filtersLoaded ? 'titles' : 'filters') + '. Try Refresh Wheel again.');
             } finally {
                 state.loading = false;
+                bindPopcornReel(state.items, 0);
                 count(); drawWheel(); syncButtons();
             }
         }
@@ -1128,7 +1174,7 @@
             }
         }
 
-        function spinPopcorn(winner, token) {
+        function spinPopcorn(winner, winnerIndex, token) {
             var reduced = reducedMotion(), lockAt = reduced ? 0 : 3770;
             var burstAt = lockAt + 150, revealDuration = reduced ? 360 : 960;
             var started = performance.now();
@@ -1141,6 +1187,7 @@
             card.classList.remove('wwPopcornWinner');
             page.classList.add('wwPopcornRunning');
             showWinner(winner);
+            bindPopcornReel(state.items, winnerIndex);
             reelStep = Math.max(78, Math.min(132, (stage.clientWidth || 900) / 8));
             reelBoxes.forEach(function (box) { box.classList.remove('wwSelectedBucket'); });
             renderPopcornReel(0);
@@ -1218,7 +1265,7 @@
             var winner = state.items[index];
             var token = ++state.spinToken;
             if (activeSkin === 'popcorn') {
-                spinPopcorn(winner, token);
+                spinPopcorn(winner, index, token);
                 return;
             }
             var arc = TWO_PI / state.items.length;
