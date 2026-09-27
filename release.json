@@ -1,12 +1,12 @@
 ﻿{
     "name":  "Watch Wheel",
     "guid":  "4c6f5316-58f6-4d90-87cc-b8ca47b40a01",
-    "version":  "1.0.2.12",
+    "version":  "1.0.2.13",
     "targetAbi":  "10.11.11.0",
     "framework":  "net9.0",
     "owner":  "Watch Wheel Contributors",
     "category":  "General",
     "overview":  "Choose an unwatched movie or next episode.",
     "description":  "User-aware movie and TV picks with filters, history, next-episode playback and Android support.",
-    "changelog":  "Test build: new Web Popcorn sound design with soft reel whooshes, deeper slowdown cues, air-lock settle, and delayed burst/scatter winner reveal."
+    "changelog":  "Test build: final Popcorn reveal audio synchronization with delayed burst timing and refined reveal gain."
 }
