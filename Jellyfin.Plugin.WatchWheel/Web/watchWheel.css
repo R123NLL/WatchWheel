@@ -469,7 +469,7 @@
 #WatchWheelPage .wwPopcornParticle:nth-child(3n) { --dx: 115px; --dy: -65px; }
 #WatchWheelPage .wwPopcornParticle:nth-child(2n) { animation-delay: 45ms; }
 #WatchWheelPage .wwRevealing .wwPopcornParticle { animation: wwPopcornFly 760ms cubic-bezier(.12,.62,.34,1) both; }
-#WatchWheelPage .wwRevealing .wwPopcornBox:first-child { filter: drop-shadow(0 0 22px #ffd183); }
+#WatchWheelPage .wwRevealing .wwSelectedBucket { filter: drop-shadow(0 0 22px #ffd183); }
 #WatchWheelPage[data-skin="popcorn"] #wwSpin {
     position: relative;
     width: min(360px,80vw); height: 64px; min-width: 0;
@@ -488,6 +488,66 @@
 @media (prefers-reduced-motion:reduce) {
     #WatchWheelPage .wwRevealing .wwPopcornParticle,
     #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner { animation: none; }
+}
+
+/* Approved Popcorn artwork replaces the earlier procedural placeholders. */
+#WatchWheelPage[data-skin="popcorn"] {
+    background: linear-gradient(180deg,rgba(5,7,14,.33),rgba(7,7,13,.12) 55%,rgba(5,5,11,.4)),
+        url("../WatchWheel/Assets/cinematic_popcorn_reveal_stage.png") center center / cover fixed no-repeat #080a12;
+}
+#WatchWheelPage[data-skin="popcorn"] .watchWheelShell { width: min(1480px,calc(100vw - 32px)); max-width: 1480px; }
+#WatchWheelPage[data-skin="popcorn"] .cinemaLayout::before,
+#WatchWheelPage[data-skin="popcorn"] .cinemaLayout::after,
+#WatchWheelPage[data-skin="popcorn"] .wheelSection::after { display: none; }
+#WatchWheelPage[data-skin="popcorn"] .cinemaLayout { gap: 8px; }
+#WatchWheelPage[data-skin="popcorn"] .wheelSection { margin-top: -4px; }
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage {
+    height: clamp(250px,27vw,360px);
+    background: radial-gradient(ellipse at 50% 85%,rgba(255,188,75,.3),transparent 56%),
+        linear-gradient(180deg,transparent 5%,rgba(7,8,15,.08) 68%,rgba(8,7,13,.63));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
+    border: 0; border-radius: 0; box-shadow: none;
+    background: url("../WatchWheel/Assets/golden_star_popcorn_bucket.png") center bottom / contain no-repeat;
+    filter: drop-shadow(0 14px 10px rgba(0,0,0,.72));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox::before,
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox span { display: none; }
+#WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket {
+    border: 0; box-shadow: none;
+    filter: drop-shadow(0 0 19px rgba(255,201,94,.8)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornMarker {
+    background: linear-gradient(180deg,#ffe8af,rgba(255,202,107,.6) 42%,transparent 43% 82%,#ffdb86 84%);
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornHero {
+    position: absolute; z-index: 8; pointer-events: none; opacity: 0;
+    left: 50%; bottom: 2px; width: clamp(190px,25vw,310px); aspect-ratio: 1086 / 1448;
+    transform: translate(-50%,20%) scale(.55);
+    background: url("../WatchWheel/Assets/golden_popcorn_explosion_tub.png") center bottom / contain no-repeat;
+    filter: drop-shadow(0 0 24px rgba(255,177,53,.75));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornHero { opacity: 1; transform: translateX(-50%); }
+#WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero {
+    animation: wwAssetBurst 850ms cubic-bezier(.14,.75,.2,1) both;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwWon .wwSelectedBucket { opacity: 0; }
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornLid { display: none; }
+#WatchWheelPage[data-skin="popcorn"] .winnerCard,
+#WatchWheelPage[data-skin="popcorn"] .cinemaEmpty { width: min(740px,100%); }
+#WatchWheelPage[data-skin="popcorn"] .winnerCard { border-color: #d49b55; }
+@keyframes wwAssetBurst {
+    0% { opacity: 0; transform: translate(-50%,20%) scale(.55); filter: brightness(2) drop-shadow(0 0 20px #ffbd5f); }
+    42% { opacity: 1; }
+    100% { opacity: 1; transform: translateX(-50%); filter: brightness(1) drop-shadow(0 0 24px rgba(255,177,53,.75)); }
+}
+@media (max-width:640px) {
+    #WatchWheelPage[data-skin="popcorn"] { background-attachment: scroll; }
+    #WatchWheelPage[data-skin="popcorn"] .wwPopcornStage { height: 255px; }
+    #WatchWheelPage[data-skin="popcorn"] .wwPopcornHero { width: 190px; }
+}
+@media (prefers-reduced-motion:reduce) {
+    #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero { animation: none; }
 }
 @media (max-width: 640px) {
     #WatchWheelPage .wwWatcherForm { grid-template-columns: 1fr; }
@@ -559,7 +619,7 @@
     box-shadow: inset -10px 0 14px rgba(76,10,12,.28),inset 0 9px 10px rgba(255,255,255,.32),
         0 13px 13px rgba(0,0,0,.72),0 0 15px rgba(222,108,37,.16);
 }
-#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox:first-child {
+#WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket {
     border-color: #ffe4a4;
     box-shadow: 0 0 24px rgba(255,178,59,.62),0 20px 22px rgba(0,0,0,.76),
         inset 0 8px 16px rgba(255,255,255,.3);
@@ -581,7 +641,7 @@
 }
 #WatchWheelPage .wwRevealing .wwPopcornFlare { animation: wwPopcornFlare 760ms ease-out both; }
 #WatchWheelPage .wwRevealing .wwPopcornLid { animation: wwPopcornLid 760ms cubic-bezier(.15,.7,.2,1) both; }
-#WatchWheelPage .wwSettling .wwPopcornBox:first-child { filter: drop-shadow(0 0 25px #ffd383) brightness(1.2); }
+#WatchWheelPage .wwSettling .wwSelectedBucket { filter: drop-shadow(0 0 25px #ffd383) brightness(1.2); }
 #WatchWheelPage .wwPopcornBurst { z-index: 12; bottom: 138px; }
 #WatchWheelPage .wwPopcornParticle { width: 17px; height: 16px; box-shadow: 0 0 15px rgba(255,204,108,.8); }
 #WatchWheelPage .wwPopcornParticle:nth-child(6n+1) { --dx: -210px; --dy: -172px; }
@@ -623,4 +683,164 @@
     #WatchWheelPage .wwRevealing .wwPopcornLid,
     #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner,
     #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner .winnerPosterWrapper { animation: none; }
+}
+
+/* Final asset surfaces must win over the older gradient/stripe foundation above. */
+#WatchWheelPage[data-skin="popcorn"] {
+    background-image: linear-gradient(180deg,rgba(5,7,14,.33),rgba(7,7,13,.12) 55%,rgba(5,5,11,.4)),
+        url("../WatchWheel/Assets/cinematic_popcorn_reveal_stage.png");
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage {
+    background: radial-gradient(ellipse at 50% 85%,rgba(255,188,75,.3),transparent 56%),
+        linear-gradient(180deg,transparent 5%,rgba(7,8,15,.08) 68%,rgba(8,7,13,.63));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
+    background: url("../WatchWheel/Assets/golden_star_popcorn_bucket.png") center bottom / contain no-repeat;
+    box-shadow: none;
+    filter: drop-shadow(0 14px 10px rgba(0,0,0,.72));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket {
+    box-shadow: none;
+    filter: drop-shadow(0 0 19px rgba(255,201,94,.8)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
+}
+@media (max-width:640px) {
+    #WatchWheelPage[data-skin="popcorn"] { background-attachment: scroll; }
+}
+
+/* One reveal clock: bucket 0–240, poster 100–600, glass 350–650,
+   content 400–700, actions 820–960 ms. Artwork/layout remain unchanged. */
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox { transition: opacity 240ms ease-out; }
+#WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero {
+    animation: wwBucketOpen 240ms cubic-bezier(.16,.7,.2,1) both;
+    transform-origin: 50% 85%;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornFlare {
+    animation: wwWarmFlare 680ms ease-out both;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBurst { bottom: var(--ww-mouth,138px); }
+#WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornParticle {
+    animation: wwKernelArc 760ms linear both;
+    animation-delay: var(--delay);
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornLight { transition: opacity 180ms ease; opacity: .65; }
+#WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornLight,
+#WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornLight { opacity: 1; }
+#WatchWheelPage[data-skin="popcorn"].wwPopcornRunning #wwSpin { pointer-events: none; }
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage[data-motion="launch"] ~ #wwSpin { animation: wwLaunchPress 200ms ease-out; }
+@keyframes wwLaunchPress { 35% { transform: scale(.96); } 100% { transform: scale(1); } }
+@keyframes wwBucketOpen {
+    from { opacity: 0; transform: translate(-50%,5%) scale(.8); }
+    to { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+@keyframes wwWarmFlare {
+    0% { opacity: 0; transform: translate(-50%,32%) scale(.35); }
+    28% { opacity: .9; }
+    100% { opacity: 0; transform: translate(-50%,32%) scale(1.25); }
+}
+@keyframes wwFadeOnly { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wwContentIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes wwKernelArc {
+    0% { opacity: 0; transform: translate3d(0,0,0) scale(var(--size)); animation-timing-function: cubic-bezier(.1,.6,.3,1); }
+    12% { opacity: 1; }
+    48% { opacity: 1; transform: translate3d(calc(var(--dx) * .78),var(--rise),0) rotate(calc(var(--turn) * .6)) scale(var(--size)); animation-timing-function: ease-in; }
+    100% { opacity: 0; transform: translate3d(var(--dx),var(--fall),0) rotate(var(--turn)) scale(calc(var(--size) * .7)); }
+}
+
+/* Dedicated Popcorn scene. Classic's card never hosts this poster or its actions. */
+#WatchWheelPage[data-skin="popcorn"] #winnerCard,
+#WatchWheelPage[data-skin="popcorn"] #wwWinnerEmpty { display: none !important; }
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage { height: clamp(560px,70vh,740px); }
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
+    background-image: url("../WatchWheel/Assets/popcorn-vector.svg");
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornHero {
+    width: clamp(200px,22vw,250px); aspect-ratio: 3 / 4; bottom: 18px;
+    background: none; overflow: visible; transform-origin: center bottom;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero {
+    animation: pcBucketGrow 240ms cubic-bezier(.16,.7,.2,1) both;
+}
+#WatchWheelPage .pcMarker { position: absolute; left: 50%; bottom: -12px; width: 110px; height: 147px; transform: translateX(-50%); z-index: 10; pointer-events: none; }
+#WatchWheelPage .pcBucket .pcLeftLid { transform-origin: 49px 149px; }
+#WatchWheelPage .pcBucket .pcRightLid { transform-origin: 251px 149px; }
+#WatchWheelPage .pcBucket .pcRays { opacity: .22; transform-origin: 150px 150px; }
+#WatchWheelPage .pcBucket .pcCrown { transform: translateY(-14px); }
+#WatchWheelPage .wwRevealing .pcLeftLid { animation: pcLidLeft 260ms ease-out both; }
+#WatchWheelPage .wwRevealing .pcRightLid { animation: pcLidRight 260ms ease-out both; }
+#WatchWheelPage .wwRevealing .pcCrown { animation: pcCrownLift 400ms ease-out both; }
+#WatchWheelPage .wwRevealing .pcRays { animation: pcRaysOpen 650ms ease-out both; }
+#WatchWheelPage .pcWinnerScene { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+#WatchWheelPage .pcWinnerScene.wwPopcornPreparing { visibility: hidden; }
+#WatchWheelPage .pcPoster {
+    position: absolute; left: 50%; bottom: 210px; width: clamp(180px,20vw,235px);
+    aspect-ratio: 2 / 3; margin-left: clamp(-117.5px,-10vw,-90px);
+    transform-origin: center top; border-radius: 9px;
+    background: #192434; overflow: hidden;
+    box-shadow: 0 0 0 2px #ffe4a0,0 0 32px rgba(255,170,45,.45),0 18px 36px #0009;
+}
+#WatchWheelPage .pcPoster img { width: 100%; height: 100%; object-fit: cover; }
+#WatchWheelPage .pcGlassPanel {
+    position: absolute; left: calc(50% + 150px); right: 24px; top: 12%;
+    padding: clamp(16px,2vw,28px); border: 1px solid #e0ae66; border-radius: 18px;
+    background: linear-gradient(125deg,rgba(29,19,16,.96),rgba(8,12,20,.96));
+    box-shadow: 0 0 26px #e59e342f,0 20px 45px #0009; pointer-events: auto;
+    max-height: calc(88% - 165px); overflow: auto; box-sizing: border-box;
+}
+#WatchWheelPage .pcEyebrow { font-size: .7rem; letter-spacing: .18em; color: #e9bd7b; margin-bottom: 10px; }
+#WatchWheelPage .pcCopy h2 { font-size: clamp(1.3rem,2.3vw,2rem); margin: 0 0 12px; line-height: 1.15; }
+#WatchWheelPage .pcCopy { color: #fff2db; line-height: 1.45; }
+#WatchWheelPage .pcSynopsis { margin: 14px 0; }
+#WatchWheelPage .pcSynopsis summary { cursor: pointer; color: #e5bd83; }
+#WatchWheelPage .pcSynopsis p { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 8px 0; }
+#WatchWheelPage .pcGenres { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+#WatchWheelPage .pcActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#WatchWheelPage .pcActions button { width: 100%; min-height: 42px; padding: 8px; border: 1px solid #74604c; border-radius: 9px; color: #fff0d8; background: #252322; font-size: .86rem; }
+#WatchWheelPage #pcwwPlay { color: #261606; background: linear-gradient(#ffe4a0,#eaae47); border-color: #ffe5a0; font-weight: 700; }
+#WatchWheelPage .pcActions button:focus-visible { outline: 3px solid #fff1bc; outline-offset: 3px; }
+#WatchWheelPage .pcInvitation { position: absolute; top: 25%; width: 100%; text-align: center; color: #fff0ca; letter-spacing: .2em; }
+#WatchWheelPage .pcInvitation p { letter-spacing: .03em; opacity: .7; }
+#WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcPoster { animation: pcPosterRise 500ms cubic-bezier(.12,.72,.18,1) 100ms both; }
+#WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcGlassPanel { animation: pcPanelForm 300ms cubic-bezier(.16,.7,.2,1) 350ms both; }
+#WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcCopy { animation: wwContentIn 300ms ease-out 400ms both; }
+#WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcActions { animation: wwContentIn 140ms ease-out 820ms both; }
+#WatchWheelPage.wwPopcornRunning .pcGlassPanel { pointer-events: none; }
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornParticle {
+    width: 27px; height: 27px; border-radius: 0; box-shadow: none;
+    background: url("../WatchWheel/Assets/popcorn-kernel.svg") center / contain no-repeat;
+}
+@keyframes pcBucketGrow { from { opacity: 0; transform: translateX(-50%) scale(.62); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+@keyframes pcLidLeft { from { opacity: 0; transform: rotate(65deg); } to { opacity: 1; transform: rotate(0); } }
+@keyframes pcLidRight { from { opacity: 0; transform: rotate(-65deg); } to { opacity: 1; transform: rotate(0); } }
+@keyframes pcCrownLift { from { transform: translateY(0); } to { transform: translateY(-14px); } }
+@keyframes pcRaysOpen { 0% { opacity: 0; transform: scale(.4); } 35% { opacity: .75; } 100% { opacity: .22; transform: scale(1); } }
+@keyframes pcPosterRise {
+    from { opacity: .15; transform: translate3d(var(--ww-origin-x),var(--ww-origin-y),0) scale(.24); clip-path: inset(0 0 65%); }
+    to { opacity: 1; transform: none; clip-path: inset(0); }
+}
+@keyframes pcPanelForm { from { opacity: 0; transform: translateX(-18px) scale(.96); } to { opacity: 1; transform: none; } }
+@media (max-width:900px) {
+    #WatchWheelPage .pcGlassPanel { left: calc(50% + 118px); right: 10px; padding: 14px; }
+}
+@media (max-width:640px) {
+    #WatchWheelPage[data-skin="popcorn"] .wwPopcornStage { height: 700px; }
+    #WatchWheelPage .pcPoster { width: 170px; margin-left: -85px; bottom: 180px; }
+    #WatchWheelPage .pcGlassPanel { top: 12px; left: 12px; right: 12px; max-height: 230px; }
+}
+@media (prefers-reduced-motion:reduce) {
+    #WatchWheelPage .wwRevealing .pcLeftLid, #WatchWheelPage .wwRevealing .pcRightLid,
+    #WatchWheelPage .wwRevealing .pcCrown, #WatchWheelPage .wwRevealing .pcRays { animation: none; }
+    #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero { animation: wwFadeOnly 120ms ease both; }
+    #WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcPoster { animation: wwFadeOnly 160ms ease both; }
+    #WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcGlassPanel,
+    #WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcCopy { animation: wwFadeOnly 140ms ease 80ms both; }
+    #WatchWheelPage .pcWinnerScene.wwPopcornWinner .pcActions { animation: wwFadeOnly 100ms ease 260ms both; }
+}
+@media (prefers-reduced-motion:reduce) {
+    #WatchWheelPage[data-skin="popcorn"] .wwPopcornBox { transition: none; }
+    #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero { animation: wwFadeOnly 120ms ease-out both; }
+    #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornParticle,
+    #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornFlare { animation: none; opacity: 0; }
 }

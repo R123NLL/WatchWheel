@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 300 400">
+  <defs>
+    <linearGradient id="cream" x2="1" y2="0"><stop stop-color="#d6b678"/><stop offset=".42" stop-color="#fff5d4"/><stop offset="1" stop-color="#d8b57a"/></linearGradient>
+    <linearGradient id="red" x2="1" y2="0"><stop stop-color="#790e21"/><stop offset=".45" stop-color="#e53337"/><stop offset="1" stop-color="#910b21"/></linearGradient>
+    <linearGradient id="gold" x2=".9" y2="1"><stop stop-color="#fff3b2"/><stop offset=".35" stop-color="#ffc75a"/><stop offset=".7" stop-color="#ad6219"/><stop offset="1" stop-color="#ffe49c"/></linearGradient>
+    <radialGradient id="kernel"><stop stop-color="#fffcea"/><stop offset=".65" stop-color="#ffebad"/><stop offset="1" stop-color="#d69a42"/></radialGradient>
+    <radialGradient id="warm"><stop stop-color="#fff1ab" stop-opacity=".8"/><stop offset=".45" stop-color="#ffa52f" stop-opacity=".25"/><stop offset="1" stop-color="#ffae35" stop-opacity="0"/></radialGradient>
+    <clipPath id="tub-clip"><path d="M39 143 Q150 125 261 143 L236 371 Q150 393 64 371Z"/></clipPath>
+    <g id="popcorn-kernel-01">
+      <path fill="url(#kernel)" stroke="#e9b455" stroke-width="1.2" d="M-4-11C-15-24-28-9-21 0C-36 10-21 25-10 18C-4 34 15 27 15 15C32 20 35-1 21-5C27-21 9-29 2-14Z"/>
+      <path fill="#d38725" d="M-4-5Q5-13 10-4L5 5-4 8-9 1Z"/><path fill="#ffd779" d="M-3-5L3-9 6-2 2 4Z"/>
+    </g>
+    <g id="popcorn-kernel-02"><use xlink:href="#popcorn-kernel-01" transform="rotate(53) scale(.87 1.06)"/></g>
+    <g id="popcorn-kernel-03"><use xlink:href="#popcorn-kernel-01" transform="rotate(-38) scale(1.08 .86)"/></g>
+    <g id="bucket-body">
+      <path fill="url(#cream)" stroke="url(#gold)" stroke-width="5" d="M39 143 Q150 125 261 143 L236 371 Q150 393 64 371Z"/>
+      <g clip-path="url(#tub-clip)" fill="url(#red)">
+        <path d="M35 130H75L93 387H62Z"/><path d="M108 130H145L149 392H117Z"/>
+        <path d="M180 130H217L203 390H172Z"/><path d="M248 130H275L242 390H225Z"/>
+      </g>
+      <path fill="none" stroke="url(#gold)" stroke-width="7" d="M39 143Q150 125 261 143M64 371Q150 393 236 371"/>
+      <path fill="none" stroke="#fff0bc" stroke-opacity=".4" stroke-width="3" d="M51 153L74 362M250 153L227 362"/>
+    </g>
+    <g id="bucket-medallion">
+      <circle cx="150" cy="258" r="48" fill="url(#gold)" stroke="#fff0b6" stroke-width="3"/>
+      <circle cx="150" cy="258" r="40" fill="#e6ae50" stroke="#995314" stroke-width="1"/>
+      <path fill="#7d3812" stroke="#fff0ba" stroke-width="1.5" d="M150 222L160 245 186 247 166 264 171 291 150 277 128 291 133 264 113 247 140 245Z"/>
+      <path fill="#ffd36d" d="M150 222L150 258 140 245ZM186 247L150 258 166 264ZM171 291L150 258 150 277Z"/>
+    </g>
+    <g id="bucket-left-lid"><path fill="url(#red)" stroke="url(#gold)" stroke-width="4" d="M49 149L4 96Q32 82 63 97L108 138Z"/><path fill="#c9702c" d="M49 146L12 98 57 103 100 137Z"/></g>
+    <g id="bucket-right-lid"><path fill="url(#red)" stroke="url(#gold)" stroke-width="4" d="M251 149L296 96Q268 82 237 97L192 138Z"/><path fill="#c9702c" d="M251 146L288 98 243 103 200 137Z"/></g>
+    <g id="bucket-popcorn">
+      <use xlink:href="#popcorn-kernel-01" transform="translate(73 120) scale(.8)"/><use xlink:href="#popcorn-kernel-02" transform="translate(115 110)"/>
+      <use xlink:href="#popcorn-kernel-03" transform="translate(158 104)"/><use xlink:href="#popcorn-kernel-01" transform="translate(207 117)"/>
+      <use xlink:href="#popcorn-kernel-02" transform="translate(88 88) scale(.85)"/><use xlink:href="#popcorn-kernel-01" transform="translate(131 77)"/>
+      <use xlink:href="#popcorn-kernel-03" transform="translate(181 83)"/><use xlink:href="#popcorn-kernel-02" transform="translate(153 48) scale(.8)"/>
+      <use xlink:href="#popcorn-kernel-03" transform="translate(232 130) scale(.72)"/><use xlink:href="#popcorn-kernel-01" transform="translate(52 135) scale(.64)"/>
+    </g>
+    <g id="burst-rays" fill="url(#gold)"><path d="M143 144L127 2 158 144ZM113 150L33 25 132 137ZM176 137L268 20 194 152ZM98 162L0 105 112 151ZM202 157L300 102 218 172Z"/></g>
+    <g id="glow"><ellipse cx="150" cy="135" rx="150" ry="150" fill="url(#warm)"/></g>
+    <g id="center-marker"><path fill="url(#gold)" d="M135 0H165L150 27Z"/><path stroke="#ffde90" stroke-width="2" d="M150 25V395"/></g>
+  </defs>
+  <use xlink:href="#bucket-popcorn"/><use xlink:href="#bucket-body"/><use xlink:href="#bucket-medallion"/>
+</svg>

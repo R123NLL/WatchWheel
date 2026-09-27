@@ -122,13 +122,53 @@
                 <div class="wheelContainer">
                     <div class="wheelPointer" aria-hidden="true"></div>
                     <canvas id="watchWheelCanvas" width="800" height="800" aria-label="Wheel of movie and TV choices"></canvas>
-                    <div id="wwPopcornStage" class="wwPopcornStage" aria-hidden="true">
+                    <div id="wwPopcornStage" class="wwPopcornStage" aria-label="Popcorn cinema">
                         <div class="wwPopcornLight"></div>
-                        <div id="wwPopcornReel" class="wwPopcornReel"></div>
+                        <div id="wwPopcornReel" class="wwPopcornReel" aria-hidden="true"></div>
+                        <svg class="wwPopcornHero pcBucket" viewBox="0 0 300 400" aria-hidden="true">
+                            <g class="pcGlow"><use href="../WatchWheel/Assets/popcorn-vector.svg#glow"/></g>
+                            <g class="pcRays"><use href="../WatchWheel/Assets/popcorn-vector.svg#burst-rays"/></g>
+                            <g class="pcLeftLid"><use href="../WatchWheel/Assets/popcorn-vector.svg#bucket-left-lid"/></g>
+                            <g class="pcRightLid"><use href="../WatchWheel/Assets/popcorn-vector.svg#bucket-right-lid"/></g>
+                            <g class="pcCrown"><use href="../WatchWheel/Assets/popcorn-vector.svg#bucket-popcorn"/></g>
+                            <g class="pcBody"><use href="../WatchWheel/Assets/popcorn-vector.svg#bucket-body"/></g>
+                            <g class="pcMedallion"><use href="../WatchWheel/Assets/popcorn-vector.svg#bucket-medallion"/></g>
+                        </svg>
                         <div class="wwPopcornFlare"></div>
                         <div class="wwPopcornLid"></div>
-                        <div class="wwPopcornMarker"></div>
-                        <div id="wwPopcornBurst" class="wwPopcornBurst"></div>
+                        <svg class="pcMarker" viewBox="0 0 300 400" aria-hidden="true"><use href="../WatchWheel/Assets/popcorn-vector.svg#center-marker"/></svg>
+                        <div id="wwPopcornBurst" class="wwPopcornBurst" aria-hidden="true"></div>
+                        <div id="pcwwWinnerEmpty" class="pcInvitation"><span>LET THE BUCKET PICK</span><p>A new story is one spin away.</p></div>
+                        <section id="pcwinnerCard" class="pcWinnerScene hidden" aria-labelledby="pcwinnerTitle">
+                            <div id="pcwwPosterOrigin" class="pcPoster">
+                                <span id="pcwinnerPosterFallback" class="winnerPosterFallback" aria-hidden="true"></span>
+                                <img id="pcwinnerPoster" alt="">
+                            </div>
+                            <div class="pcGlassPanel">
+                                <div class="pcCopy">
+                                    <div class="pcEyebrow">TONIGHT'S FEATURE</div>
+                                    <div id="pcwinnerSeries"></div><h2 id="pcwinnerTitle"></h2>
+                                    <div id="pcwinnerEpisode"></div><div id="pcwinnerMeta"></div>
+                                    <div id="pcwinnerResume"></div>
+                                    <progress id="pcwinnerProgress" class="winnerProgress hidden" max="100" value="0" aria-label="Playback progress"></progress>
+                                    <details id="pcwinnerDescription" class="pcSynopsis">
+                                        <summary id="pcwinnerDescriptionLabel">Overview</summary>
+                                        <div id="pcwinnerGenres" class="pcGenres"></div><p id="pcwinnerOverview"></p>
+                                    </details>
+                                </div>
+                                <div class="pcActions">
+                                    <div id="pcwwPlaybackContainer" is="emby-itemscontainer" data-multiselect="false" data-contextmenu="false">
+                                        <button id="pcwwPlay" type="button" class="raised emby-button">Play</button>
+                                    </div>
+                                    <button id="pcwwOpen" type="button" class="raised emby-button">Details</button>
+                                    <button id="pcwwEpisode" type="button" class="raised emby-button hidden">Episode Details</button>
+                                    <button id="pcwwRemove" type="button" class="raised emby-button">Remove from Wheel</button>
+                                    <button id="pcwwAssignWinner" type="button" class="raised emby-button">Assigned Watchers</button>
+                                    <button id="pcwwAgain" type="button" class="raised emby-button">Spin Again</button>
+                                </div>
+                                <p id="pcwwPlaybackMessage" role="status" aria-live="polite"></p>
+                            </div>
+                        </section>
                     </div>
                     <button id="wwSpin" type="button" class="spinButton" disabled>SPIN</button>
                 </div>
@@ -136,7 +176,7 @@
             <aside class="cinemaSidebar" aria-label="Your pick and titles">
             <div id="wwWinnerEmpty" class="cinemaEmpty"><span aria-hidden="true">✦</span><h2>Your next movie night</h2><p>Spin to find your next watch.</p></div>
             <section id="winnerCard" class="winnerCard hidden" aria-labelledby="winnerTitle">
-                <div class="winnerPosterWrapper">
+                <div id="wwPosterOrigin" class="winnerPosterWrapper">
                     <span id="winnerPosterFallback" class="winnerPosterFallback" aria-hidden="true"></span>
                     <img id="winnerPoster" class="winnerPoster" alt="">
                 </div>

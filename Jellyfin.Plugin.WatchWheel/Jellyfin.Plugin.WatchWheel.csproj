@@ -50,6 +50,13 @@
 
   <None Remove="Web\watchWheel.css" />
   <EmbeddedResource Include="Web\watchWheel.css" />
+
+  <None Remove="Web\Assets\*.png" />
+  <None Remove="Web\Assets\*.wav" />
+  <EmbeddedResource Include="Web\Assets\*.png" />
+  <EmbeddedResource Include="Web\Assets\*.wav" />
+  <None Remove="Web\Assets\*.svg" />
+  <EmbeddedResource Include="Web\Assets\*.svg" />
 </ItemGroup>
 
 </Project>

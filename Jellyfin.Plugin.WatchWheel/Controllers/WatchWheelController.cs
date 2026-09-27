@@ -42,6 +42,32 @@ public class WatchWheelController : ControllerBase
     }
 
     /// <summary>
+    /// Serves the fixed, bundled Popcorn presentation assets without exposing filesystem paths.
+    /// </summary>
+    /// <param name="asset">An approved asset filename.</param>
+    /// <returns>The image or sound asset.</returns>
+    [HttpGet("Assets/{asset}")]
+    [AllowAnonymous]
+    public IActionResult GetPresentationAsset(string asset)
+    {
+        var contentType = asset switch
+        {
+            "popcorn-vector.svg" or "popcorn-kernel.svg" => "image/svg+xml",
+            "cinematic_popcorn_reveal_stage.png" or "golden_star_popcorn_bucket.png" or "golden_popcorn_explosion_tub.png" => "image/png",
+            "popcorn-spin-start-v2.wav" or "popcorn-reel-tick-v2.wav" or "popcorn-slow-tick-v2.wav" or "popcorn-stop-v2.wav" or "popcorn-reveal-v2.wav" => "audio/wav",
+            _ => null
+        };
+        if (contentType is null)
+        {
+            return NotFound();
+        }
+
+        var resource = typeof(Plugin).Assembly.GetManifestResourceStream(
+            "Jellyfin.Plugin.WatchWheel.Web.Assets." + asset);
+        return resource is null ? NotFound() : File(resource, contentType);
+    }
+
+    /// <summary>
     /// Gets the current Watch Wheel plugin status.
     /// </summary>
     /// <returns>Basic plugin status information.</returns>
