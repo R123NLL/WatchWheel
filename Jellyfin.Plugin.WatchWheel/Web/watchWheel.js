@@ -1283,9 +1283,11 @@
                 if (event.key === 'Escape') setSettingsOpen(false);
             });
             page.addEventListener('pointerdown', function (event) {
-                if (!byId('wwSettingsPanel').classList.contains('hidden')
-                    && !byId('wwSettingsPanel').contains(event.target)
-                    && !byId('wwSettingsButton').contains(event.target)) {
+                var panel = byId('wwSettingsPanel'), button = byId('wwSettingsButton');
+                var path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+                var inside = path.indexOf(panel) !== -1 || path.indexOf(button) !== -1
+                    || panel.contains(event.target) || button.contains(event.target);
+                if (!panel.classList.contains('hidden') && !inside) {
                     setSettingsOpen(false);
                 }
             });
