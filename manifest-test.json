@@ -9,12 +9,12 @@
         "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
         "versions":  [
                          {
-                             "version":  "1.0.2.10",
-                             "changelog":  "TEST BUILD: CommunityRating rarity auras for Popcorn Mode with blue, purple, red and gold tiers, plus rarity-aware winner reveal.",
+                             "version":  "1.0.2.11",
+                             "changelog":  "TEST BUILD: refined Popcorn rarity auras, synchronized center-crossing emphasis, responsive glow treatment, and improved final deceleration.",
                              "targetAbi":  "10.11.11.0",
-                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.10-test/WatchWheel-1.0.2.10.zip",
-                             "checksum":  "5e9272fbc666d703ccac03ea55145b56",
-                             "timestamp":  "2026-09-27T14:45:25Z"
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.11-test/WatchWheel-1.0.2.11.zip",
+                             "checksum":  "8b283f64dfade195bdd153d85fb9377d",
+                             "timestamp":  "2026-09-27T17:19:15Z"
                          }
                      ]
     }
