@@ -143,7 +143,6 @@
             prime: prime,
             preparePopcorn: preparePopcorn,
             enabled: function (value) { enabled = value; if (!enabled) stop(true); },
-            effect: function () { /* Reserved for approved shared UI effects. */ },
             spin: function (duration) { if (duration > 0) play(0, duration); },
             win: function () { stop(); play(1, 0); },
             popcornSpin: function (duration) { if (duration > 0) playPopcorn('launch'); },
@@ -321,7 +320,7 @@
         var state = {
             items: [], pool: [], removed: new Set(), history: [], winner: null, rotation: 0,
             watchers: [], assignmentItem: null, spinning: false, loading: false, playing: false,
-            request: 0, spinToken: 0, revealTimer: null, appliedFilters: null, candidatePage: 0, playbackTimer: null, filtersLoaded: false, contextChanged: false
+            request: 0, spinToken: 0, appliedFilters: null, candidatePage: 0, playbackTimer: null, filtersLoaded: false, contextChanged: false
         };
         function byId(id) { return page.querySelector('#' + id); }
         function winnerElement(id) { return byId(activeSkin === 'popcorn' ? 'pc' + id : id); }
@@ -418,13 +417,9 @@
             state.spinToken++;
             if (popcornFrame !== null) cancelAnimationFrame(popcornFrame);
             popcornFrame = null;
-            clearTimeout(state.revealTimer);
-            state.revealTimer = null;
             byId('wwPopcornStage').classList.remove('wwRevealing');
             byId('wwPopcornStage').classList.remove('wwSettling');
             byId('wwPopcornStage').classList.remove('wwWon');
-            byId('winnerCard').classList.remove('wwPopcornWinner');
-            byId('winnerCard').classList.remove('wwPopcornPreparing');
             byId('pcwinnerCard').classList.remove('wwPopcornWinner');
             byId('pcwinnerCard').classList.remove('wwPopcornPreparing');
             page.classList.remove('wwPopcornRunning');
@@ -586,7 +581,6 @@
             panel.classList.toggle('hidden', !open);
             panel.setAttribute('aria-hidden', open ? 'false' : 'true');
             byId('wwSettingsButton').setAttribute('aria-expanded', open ? 'true' : 'false');
-            wheelSound.effect(open ? 'settings-open' : 'button-click');
             (open ? byId('wwSettingsClose') : byId('wwSettingsButton')).focus();
         }
 
@@ -680,7 +674,7 @@
             byId('wwAssignmentMessage').textContent = 'Saving...';
             try {
                 await writeJSON('PUT', 'WatchWheel/Assignments/' + encodeURIComponent(idOf(state.assignmentItem)), { WatcherIds: ids });
-                wheelSound.effect('toggle'); closeAssignments();
+                closeAssignments();
                 if (byId('wwWatcher').value) await loadCandidates();
             } catch (error) {
                 byId('wwAssignmentMessage').textContent = 'Could not save assignments.';
@@ -887,12 +881,9 @@
         function playbackMessage(text) { winnerElement('wwPlaybackMessage').textContent = text || ''; }
 
         function hideWinner() {
-            clearTimeout(state.revealTimer);
             byId('wwPopcornStage').classList.remove('wwRevealing');
             byId('wwPopcornStage').classList.remove('wwSettling');
             byId('wwPopcornStage').classList.remove('wwWon');
-            byId('winnerCard').classList.remove('wwPopcornWinner');
-            byId('winnerCard').classList.remove('wwPopcornPreparing');
             byId('pcwinnerCard').classList.remove('wwPopcornWinner');
             byId('pcwinnerCard').classList.remove('wwPopcornPreparing');
             canvas.classList.remove('cinemaWinner');
@@ -1408,16 +1399,15 @@
             });
             byId('wwShowChoices').addEventListener('change', function () {
                 showChoices = byId('wwShowChoices').checked;
-                wheelSound.effect('toggle'); applyAppearance(true); savePreferences();
+                applyAppearance(true); savePreferences();
             });
             byId('wwSkin').addEventListener('change', function () {
                 if (state.spinning) { cancelSpin(); hideWinner(); }
-                byId('winnerCard').classList.remove('wwPopcornWinner');
                 byId('pcwinnerCard').classList.remove('wwPopcornWinner');
                 wheelSound.stop();
                 activeSkin = byId('wwSkin').value === 'popcorn' ? 'popcorn' : 'classic';
                 if (state.winner) showWinner(state.winner);
-                wheelSound.effect('filter-change'); applyAppearance(true); savePreferences();
+                applyAppearance(true); savePreferences();
             });
             byId('wwWatcherCreate').addEventListener('submit', async function (event) {
                 event.preventDefault();

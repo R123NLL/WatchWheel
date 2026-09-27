@@ -11,14 +11,24 @@ Watch Wheel is a Jellyfin plugin that helps a signed-in user choose what to watc
 ## Features
 
 - Movies, TV series, or both.
-- Unwatched and optional in-progress titles.
+- All media, all unwatched, not-started, and in-progress watch-status filtering.
 - Genre, decade, release year, runtime, rating, and library filters.
+- Classic wheel and Popcorn presentation modes with local, bundled artwork and sound.
+- Community-rating color tiers in Popcorn mode; these are presentation-only and never change winner odds.
+- Watcher profiles, per-title assignments, Assign to All, and watcher filtering.
 - Next-episode awareness for TV series.
 - Winner card with details, play/resume, and episode details.
 - Remove/restore candidates without modifying the Jellyfin library.
 - Recent-pick history.
 - Desktop and Android-friendly playback behavior.
 - Per-user, per-server browser storage for filters, recent picks, and removed titles.
+
+## Repository channels
+
+- `manifest.json` is the stable plugin repository.
+- `manifest-test.json` is the opt-in test channel for release candidates.
+
+Test-channel builds are intended for validation before the same approved code is promoted to stable. Do not install both channels as separate plugins; they share the same stable plugin identity.
 
 ## Compatibility
 
@@ -73,6 +83,10 @@ The generated files are written to `artifacts/` and are intentionally ignored by
 
 ```powershell
 node .\checks\watchwheel-reliability.cjs
+node .\checks\slot-sound.cjs
+node .\checks\watcher-foundation.cjs
+node .\checks\popcorn-mode.cjs
+node .\checks\popcorn-rarity.cjs
 ```
 
 The check suite exercises key client-side behaviors in a mocked Jellyfin API/DOM environment. A real Jellyfin server is still required for end-to-end validation.

@@ -51,12 +51,24 @@
   <None Remove="Web\watchWheel.css" />
   <EmbeddedResource Include="Web\watchWheel.css" />
 
-  <None Remove="Web\Assets\*.png" />
-  <None Remove="Web\Assets\*.wav" />
-  <EmbeddedResource Include="Web\Assets\*.png" />
-  <EmbeddedResource Include="Web\Assets\*.wav" />
-  <None Remove="Web\Assets\*.svg" />
-  <EmbeddedResource Include="Web\Assets\*.svg" />
+  <None Remove="Web\Assets\cinematic_popcorn_reveal_stage.png" />
+  <None Remove="Web\Assets\classic-atmosphere.svg" />
+  <None Remove="Web\Assets\popcorn-kernel.svg" />
+  <None Remove="Web\Assets\popcorn-vector.svg" />
+  <None Remove="Web\Assets\spin-launch.wav" />
+  <None Remove="Web\Assets\reel-pass-fast.wav" />
+  <None Remove="Web\Assets\reel-pass-slow.wav" />
+  <None Remove="Web\Assets\winner-lock.wav" />
+  <None Remove="Web\Assets\winner-reveal.wav" />
+  <EmbeddedResource Include="Web\Assets\cinematic_popcorn_reveal_stage.png" />
+  <EmbeddedResource Include="Web\Assets\classic-atmosphere.svg" />
+  <EmbeddedResource Include="Web\Assets\popcorn-kernel.svg" />
+  <EmbeddedResource Include="Web\Assets\popcorn-vector.svg" />
+  <EmbeddedResource Include="Web\Assets\spin-launch.wav" />
+  <EmbeddedResource Include="Web\Assets\reel-pass-fast.wav" />
+  <EmbeddedResource Include="Web\Assets\reel-pass-slow.wav" />
+  <EmbeddedResource Include="Web\Assets\winner-lock.wav" />
+  <EmbeddedResource Include="Web\Assets\winner-reveal.wav" />
 </ItemGroup>
 
 </Project>

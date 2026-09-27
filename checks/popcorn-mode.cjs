@@ -6,6 +6,7 @@ const vm = require('vm');
 const plugin = path.resolve(__dirname, '../Jellyfin.Plugin.WatchWheel');
 const css = fs.readFileSync(path.join(plugin, 'Web/watchWheel.css'), 'utf8');
 const controller = fs.readFileSync(path.join(plugin, 'Controllers/WatchWheelController.cs'), 'utf8');
+const project = fs.readFileSync(path.join(plugin, 'Jellyfin.Plugin.WatchWheel.csproj'), 'utf8');
 
 const key = 'watchwheel:v1:one:alice';
 const titles = count => Array.from({length: count}, (_, i) => ({
@@ -30,9 +31,11 @@ const nextFrame = async (e, now) => {
     for (const name of [...art, ...sfx]) {
         assert(fs.statSync(path.join(plugin, 'Web/Assets', name)).size > 300, `${name} is bundled`);
         assert(controller.includes(`"${name}"`), `${name} is served with an explicit MIME type`);
+        assert(project.includes(`Web\\Assets\\${name}`), `${name} is explicitly embedded`);
     }
     assert(fs.statSync(path.join(plugin, 'Web/Assets', classicArt)).size > 300, 'Classic atmosphere is bundled');
     assert(controller.includes(`"${classicArt}"`), 'Classic atmosphere is explicitly served');
+    assert(project.includes(`Web\\Assets\\${classicArt}`), 'Classic atmosphere is explicitly embedded');
     assert(css.includes(`Assets/${classicArt}`), 'Classic atmosphere is visibly used');
     assert.match(css, /\.wwAtmosphereLayer\s*\{[^}]*transition:\s*opacity 300ms ease/s, 'mode environments crossfade without moving the UI');
     assert.match(css, /\.pcPoster\s*\{[^}]*bottom:\s*265px/s, 'Popcorn poster rests higher above the bucket');
@@ -44,6 +47,14 @@ const nextFrame = async (e, now) => {
         assert(svg.includes(`id="${part}"`),`addressable vector part ${part}`);
     }
     for (const name of sfx) assert(js.includes(`'${name}'`), `${name} is wired to sound events`);
+    assert(!project.includes('Web\\Assets\\*.wav') && !project.includes('Web\\Assets\\*.png') && !project.includes('Web\\Assets\\*.svg'), 'production assets are embedded explicitly, not by wildcard');
+    const obsolete = ['golden_star_popcorn_bucket.png', 'golden_popcorn_explosion_tub.png',
+        'popcorn-spin-start.wav', 'popcorn-reel-tick.wav', 'popcorn-slow-tick.wav', 'popcorn-stop.wav', 'popcorn-reveal.wav',
+        'popcorn-spin-start-v2.wav', 'popcorn-reel-tick-v2.wav', 'popcorn-slow-tick-v2.wav', 'popcorn-stop-v2.wav', 'popcorn-reveal-v2.wav'];
+    for (const name of obsolete) {
+        assert(!fs.existsSync(path.join(plugin, 'Web/Assets', name)), `${name} is removed`);
+        assert(!controller.includes(`"${name}"`) && !css.includes(name) && !js.includes(name), `${name} has no production reference`);
+    }
     assert(!/['"]popcorn-(?:spin-start|reel-tick|slow-tick|stop|reveal)(?:-v2)?\.wav/.test(js), 'old audio is inactive');
     const motion = {};
     vm.runInNewContext(js.slice(js.indexOf('    var POPCORN_TIMING'), js.indexOf('    function createApp(')) + ';this.phase=popcornPhase;this.timing=POPCORN_TIMING;', motion);

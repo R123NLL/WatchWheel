@@ -84,7 +84,6 @@
 /* Compact library layout. Keep the choice, rather than the catalog, in focus. */
 #WatchWheelPage .watchWheelShell { max-width: 1080px; }
 #WatchWheelPage .filterPanel { gap: 12px; margin-bottom: 12px; }
-#WatchWheelPage .wwHint { font-size: .85rem; opacity: .7; line-height: 1.5; }
 #WatchWheelPage .wwStorageNote { margin: 8px 0 16px; font-size: .78rem; }
 #WatchWheelPage .wwFilterNote { margin: 12px 0; }
 #WatchWheelPage .wwCandidates, #WatchWheelPage .wwHistory { margin-top: 16px; padding: 18px 22px; border: 1px solid rgba(255,255,255,.1); }
@@ -446,18 +445,6 @@
     filter: drop-shadow(0 0 8px rgba(255,189,83,.68));
 }
 #WatchWheelPage .wwPopcornBox span { position: relative; z-index: 1; text-shadow: 0 1px 0 #ffe6bd; }
-#WatchWheelPage .wwPopcornMarker {
-    position: absolute; z-index: 10; top: 0; bottom: -13px; left: 50%;
-    width: 3px; transform: translateX(-50%);
-    background: linear-gradient(180deg,#f7ca78,rgba(247,202,120,.25) 45%,#ffd894);
-    box-shadow: 0 0 14px #ffb65b;
-    pointer-events: none;
-}
-#WatchWheelPage .wwPopcornMarker::before {
-    content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    border-left: 13px solid transparent; border-right: 13px solid transparent;
-    border-top: 24px solid #f6d18b;
-}
 #WatchWheelPage .wwPopcornBurst { position: absolute; z-index: 11; left: 50%; bottom: 118px; pointer-events: none; }
 #WatchWheelPage .wwPopcornParticle {
     position: absolute; width: 13px; height: 13px; border-radius: 45%; opacity: 0;
@@ -468,7 +455,6 @@
 #WatchWheelPage .wwPopcornParticle:nth-child(3n+2) { --dx: 65px; --dy: -135px; }
 #WatchWheelPage .wwPopcornParticle:nth-child(3n) { --dx: 115px; --dy: -65px; }
 #WatchWheelPage .wwPopcornParticle:nth-child(2n) { animation-delay: 45ms; }
-#WatchWheelPage .wwRevealing .wwPopcornParticle { animation: wwPopcornFly 760ms cubic-bezier(.12,.62,.34,1) both; }
 #WatchWheelPage .wwRevealing .wwSelectedBucket { filter: drop-shadow(0 0 22px #ffd183); }
 #WatchWheelPage[data-skin="popcorn"] #wwSpin {
     position: relative;
@@ -478,16 +464,12 @@
     color: #ffe0a0; font-size: 1.35rem;
     box-shadow: 0 0 22px rgba(246,165,66,.55),inset 0 0 16px rgba(255,177,65,.25);
 }
-#WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner { animation: wwPopcornWinner 760ms cubic-bezier(.16,.7,.2,1) both; }
-@keyframes wwPopcornFly { 0% { opacity: 0; transform: translate3d(0,0,0) scale(.4); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate3d(var(--dx),var(--dy),0) rotate(190deg) scale(.7); } }
-@keyframes wwPopcornWinner { from { opacity: 0; transform: translateY(62px) scale(.94); } to { opacity: 1; transform: none; } }
 @media (max-width:640px) {
     #WatchWheelPage[data-skin="popcorn"] .wwPopcornStage { height: 205px; }
     #WatchWheelPage[data-skin="popcorn"] .winnerCard { grid-template-columns: minmax(80px,.7fr) minmax(0,1fr); }
 }
 @media (prefers-reduced-motion:reduce) {
-    #WatchWheelPage .wwRevealing .wwPopcornParticle,
-    #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner { animation: none; }
+    #WatchWheelPage .wwRevealing .wwPopcornParticle { animation: none; }
 }
 
 /* Approved Popcorn artwork replaces the earlier procedural placeholders. */
@@ -508,7 +490,6 @@
 }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
     border: 0; border-radius: 0; box-shadow: none;
-    background: url("../WatchWheel/Assets/golden_star_popcorn_bucket.png") center bottom / contain no-repeat;
     filter: drop-shadow(0 14px 10px rgba(0,0,0,.72));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBox::before,
@@ -517,37 +498,21 @@
     border: 0; box-shadow: none;
     filter: drop-shadow(0 0 19px rgba(255,201,94,.8)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
 }
-#WatchWheelPage[data-skin="popcorn"] .wwPopcornMarker {
-    background: linear-gradient(180deg,#ffe8af,rgba(255,202,107,.6) 42%,transparent 43% 82%,#ffdb86 84%);
-}
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornHero {
     position: absolute; z-index: 8; pointer-events: none; opacity: 0;
     left: 50%; bottom: 2px; width: clamp(190px,25vw,310px); aspect-ratio: 1086 / 1448;
     transform: translate(-50%,20%) scale(.55);
-    background: url("../WatchWheel/Assets/golden_popcorn_explosion_tub.png") center bottom / contain no-repeat;
     filter: drop-shadow(0 0 24px rgba(255,177,53,.75));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornHero { opacity: 1; transform: translateX(-50%); }
-#WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero {
-    animation: wwAssetBurst 850ms cubic-bezier(.14,.75,.2,1) both;
-}
 #WatchWheelPage[data-skin="popcorn"] .wwWon .wwSelectedBucket { opacity: 0; }
-#WatchWheelPage[data-skin="popcorn"] .wwPopcornLid { display: none; }
 #WatchWheelPage[data-skin="popcorn"] .winnerCard,
 #WatchWheelPage[data-skin="popcorn"] .cinemaEmpty { width: min(740px,100%); }
 #WatchWheelPage[data-skin="popcorn"] .winnerCard { border-color: #d49b55; }
-@keyframes wwAssetBurst {
-    0% { opacity: 0; transform: translate(-50%,20%) scale(.55); filter: brightness(2) drop-shadow(0 0 20px #ffbd5f); }
-    42% { opacity: 1; }
-    100% { opacity: 1; transform: translateX(-50%); filter: brightness(1) drop-shadow(0 0 24px rgba(255,177,53,.75)); }
-}
 @media (max-width:640px) {
     #WatchWheelPage[data-skin="popcorn"] { background-attachment: scroll; }
     #WatchWheelPage[data-skin="popcorn"] .wwPopcornStage { height: 255px; }
     #WatchWheelPage[data-skin="popcorn"] .wwPopcornHero { width: 190px; }
-}
-@media (prefers-reduced-motion:reduce) {
-    #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero { animation: none; }
 }
 @media (max-width: 640px) {
     #WatchWheelPage .wwWatcherForm { grid-template-columns: 1fr; }
@@ -631,16 +596,6 @@
     background: radial-gradient(circle,rgba(255,250,200,.92),rgba(255,190,69,.6) 16%,rgba(255,115,21,.2) 36%,transparent 67%);
     mix-blend-mode: screen;
 }
-#WatchWheelPage .wwPopcornLid {
-    position: absolute; z-index: 8; pointer-events: none; opacity: 0;
-    left: 50%; bottom: 108px; width: 132px; height: 29px;
-    transform: translateX(-50%); transform-origin: center bottom;
-    border: 3px solid #ffe3ad; border-radius: 18px 18px 7px 7px;
-    background: repeating-linear-gradient(90deg,#ac282a 0 20%,#fff0ce 20% 40%);
-    box-shadow: 0 0 20px rgba(255,193,73,.65);
-}
-#WatchWheelPage .wwRevealing .wwPopcornFlare { animation: wwPopcornFlare 760ms ease-out both; }
-#WatchWheelPage .wwRevealing .wwPopcornLid { animation: wwPopcornLid 760ms cubic-bezier(.15,.7,.2,1) both; }
 #WatchWheelPage .wwSettling .wwSelectedBucket { filter: drop-shadow(0 0 25px #ffd383) brightness(1.2); }
 #WatchWheelPage .wwPopcornBurst { z-index: 12; bottom: 138px; }
 #WatchWheelPage .wwPopcornParticle { width: 17px; height: 16px; box-shadow: 0 0 15px rgba(255,204,108,.8); }
@@ -658,31 +613,17 @@
     background: linear-gradient(125deg,rgba(11,14,23,.97),rgba(16,19,24,.93));
     box-shadow: 0 0 0 1px rgba(255,209,139,.12),0 0 45px rgba(246,133,35,.24),0 22px 42px rgba(0,0,0,.56);
 }
-#WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner {
-    animation: wwPopcornWinner 760ms cubic-bezier(.16,.7,.2,1) both;
-}
-#WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner .winnerPosterWrapper {
-    animation: wwPosterLift 700ms cubic-bezier(.13,.7,.25,1) both;
-}
 #WatchWheelPage[data-skin="popcorn"] #wwSpin {
     z-index: 10; height: 70px; width: min(400px,84vw); letter-spacing: .13em;
     background: linear-gradient(180deg,#72401f,#2e1b18 48%,#1a1318);
     box-shadow: 0 0 0 2px rgba(255,215,149,.1),0 0 31px rgba(255,173,57,.52),
         inset 0 1px 9px rgba(255,242,188,.3),0 14px 25px rgba(0,0,0,.55);
 }
-@keyframes wwPopcornFlare { 0% { opacity: 0; transform: translate(-50%,32%) scale(.2); } 22% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,32%) scale(1.3); } }
-@keyframes wwPopcornLid { 0%,12% { opacity: 0; transform: translateX(-50%) rotate(0); } 35% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-82px) rotate(-26deg); } }
-@keyframes wwPopcornWinner { from { opacity: 0; transform: translateY(150px) scale(.76); filter: brightness(1.6); } to { opacity: 1; transform: none; filter: none; } }
-@keyframes wwPosterLift { from { opacity: .35; transform: translateY(115px) scale(.82); } to { opacity: 1; transform: none; } }
 @media (max-width:640px) {
-    #WatchWheelPage .wwPopcornLid { width: 100px; bottom: 91px; }
     #WatchWheelPage .wwPopcornBurst { bottom: 114px; }
 }
 @media (prefers-reduced-motion:reduce) {
-    #WatchWheelPage .wwRevealing .wwPopcornFlare,
-    #WatchWheelPage .wwRevealing .wwPopcornLid,
-    #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner,
-    #WatchWheelPage[data-skin="popcorn"] .winnerCard.wwPopcornWinner .winnerPosterWrapper { animation: none; }
+    #WatchWheelPage .wwRevealing .wwPopcornFlare { animation: none; }
 }
 
 /* Final asset surfaces must win over the older gradient/stripe foundation above. */
@@ -698,7 +639,6 @@
         linear-gradient(180deg,transparent 5%,rgba(7,8,15,.08) 68%,rgba(8,7,13,.63));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
-    background: url("../WatchWheel/Assets/golden_star_popcorn_bucket.png") center bottom / contain no-repeat;
     box-shadow: none;
     filter: drop-shadow(0 14px 10px rgba(0,0,0,.72));
 }
