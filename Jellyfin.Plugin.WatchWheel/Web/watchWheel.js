@@ -248,21 +248,32 @@
         return 'blue';
     }
 
-    // The integral of velocity, shared with TV's PopcornMotion: smooth launch,
-    // constant travel, quadratic drag, then a tiny zero-velocity settle.
+    // Reference presentation timings. Winner selection and candidate order never use these values.
+    var POPCORN_TIMING = {
+        launchEnd: 200, travelEnd: 2200, dragEnd: 4000, lock: 4220,
+        burstDelay: 150, reveal: 960, crossingTickGap: 125
+    };
+    var POPCORN_VISUAL = { target: 39, centerWindow: .48 };
+
+    // The integral of velocity: smooth launch, constant travel, continuous quartic drag,
+    // then a tiny zero-velocity settle. The longer tail spaces the final crossings naturally.
     function popcornPhase(ms) {
-        var speed = 39 / 2.55;
-        if (ms < 200) {
-            var launch = Math.max(0, ms / 200);
+        var speed = POPCORN_VISUAL.target / 2.55;
+        if (ms < POPCORN_TIMING.launchEnd) {
+            var launch = Math.max(0, ms / POPCORN_TIMING.launchEnd);
             return speed * .2 * (Math.pow(launch, 3) - .5 * Math.pow(launch, 4));
         }
-        if (ms < 2200) return speed * (.1 + (ms - 200) / 1000);
-        if (ms < 3550) {
-            var drag = (ms - 2200) / 1350;
-            return speed * (2.1 + 1.35 * (drag - drag * drag + Math.pow(drag, 3) / 3));
+        if (ms < POPCORN_TIMING.travelEnd) {
+            return speed * (.1 + (ms - POPCORN_TIMING.launchEnd) / 1000);
         }
-        var settle = Math.min(1, (ms - 3550) / 220);
-        return 39 + .16 * Math.pow(Math.sin(Math.PI * settle), 2) * (1 - settle);
+        if (ms < POPCORN_TIMING.dragEnd) {
+            var drag = (ms - POPCORN_TIMING.travelEnd) / (POPCORN_TIMING.dragEnd - POPCORN_TIMING.travelEnd);
+            var easedDistance = 4 * drag - 6 * drag * drag + 4 * Math.pow(drag, 3) - Math.pow(drag, 4);
+            var dragStart = speed * 2.1;
+            return dragStart + (POPCORN_VISUAL.target - dragStart) * easedDistance;
+        }
+        var settle = Math.min(1, (ms - POPCORN_TIMING.dragEnd) / (POPCORN_TIMING.lock - POPCORN_TIMING.dragEnd));
+        return POPCORN_VISUAL.target + .12 * Math.pow(Math.sin(Math.PI * settle), 2) * (1 - settle);
     }
 
     function createApp(page) {
@@ -288,18 +299,32 @@
                 aura.setAttribute('class', 'wwRarityAura');
                 aura.setAttribute('viewBox', '0 0 140 180');
                 aura.setAttribute('aria-hidden', 'true');
+                var definitions = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                var gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                var gradientId = 'wwRarityGradient-' + i;
+                gradient.setAttribute('id', gradientId);
+                [['0%', '.58'], ['48%', '.25'], ['100%', '0']].forEach(function (entry) {
+                    var stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                    stop.setAttribute('offset', entry[0]); stop.setAttribute('stop-opacity', entry[1]);
+                    stop.setAttribute('class', 'wwRarityStop'); gradient.appendChild(stop);
+                });
+                definitions.appendChild(gradient); aura.appendChild(definitions);
                 var halo = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
                 halo.setAttribute('class', 'wwRarityHalo');
-                halo.setAttribute('cx', '70'); halo.setAttribute('cy', '98');
-                halo.setAttribute('rx', '62'); halo.setAttribute('ry', '76');
+                halo.setAttribute('cx', '70'); halo.setAttribute('cy', '102');
+                halo.setAttribute('rx', '50'); halo.setAttribute('ry', '58');
+                halo.setAttribute('fill', 'url(#' + gradientId + ')');
                 var baseGlow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
                 baseGlow.setAttribute('class', 'wwRarityBaseGlow');
                 baseGlow.setAttribute('cx', '70'); baseGlow.setAttribute('cy', '158');
                 baseGlow.setAttribute('rx', '52'); baseGlow.setAttribute('ry', '15');
-                var sparkle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                sparkle.setAttribute('class', 'wwRaritySpark');
-                sparkle.setAttribute('cx', '112'); sparkle.setAttribute('cy', '32'); sparkle.setAttribute('r', '4');
-                aura.appendChild(halo); aura.appendChild(baseGlow); aura.appendChild(sparkle);
+                aura.appendChild(halo); aura.appendChild(baseGlow);
+                [[108, 40, 3.2], [31, 61, 2.3], [119, 78, 1.8]].forEach(function (point, sparkleIndex) {
+                    var sparkle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    sparkle.setAttribute('class', 'wwRaritySpark wwRaritySpark' + (sparkleIndex + 1));
+                    sparkle.setAttribute('cx', String(point[0])); sparkle.setAttribute('cy', String(point[1]));
+                    sparkle.setAttribute('r', String(point[2])); aura.appendChild(sparkle);
+                });
                 var art = document.createElement('div');
                 art.className = 'wwPopcornBucketArt';
                 art.setAttribute('aria-hidden', 'true');
@@ -320,7 +345,7 @@
         }
 
         function bindPopcornReel(items, winnerIndex) {
-            var selected = 39 % REEL_BOX_COUNT;
+            var selected = POPCORN_VISUAL.target % REEL_BOX_COUNT;
             var length = items && items.length ? items.length : 0;
             for (var i = 0; i < reelBoxes.length; i++) {
                 var item = length
@@ -336,11 +361,15 @@
                 var slot = ((i - phase + REEL_BOX_COUNT * 100) % REEL_BOX_COUNT);
                 if (slot > REEL_BOX_COUNT / 2) slot -= REEL_BOX_COUNT;
                 var emphasis = Math.max(0, 1 - Math.abs(slot) / 1.6);
-                var center = Math.max(0, 1 - Math.abs(slot) / .48);
+                var center = Math.max(0, 1 - Math.abs(slot) / POPCORN_VISUAL.centerWindow);
+                center = center * center * (3 - 2 * center);
                 reelBoxes[i].style.transform = 'translate3d(calc(-50% + ' + (slot * reelStep).toFixed(2)
                     + 'px),0,0) scale(' + (1 + emphasis * .32).toFixed(3) + ')';
                 reelBoxes[i].style.zIndex = String(Math.round(emphasis * 5));
                 reelBoxes[i].style.setProperty('--ww-center', center.toFixed(3));
+                reelBoxes[i].style.setProperty('--ww-cross-alpha', (center * .28).toFixed(3));
+                reelBoxes[i].style.setProperty('--ww-cross-scale', (1 + center * .025).toFixed(3));
+                reelBoxes[i].style.setProperty('--ww-under-cross', (center * .1).toFixed(3));
             }
         }
 
@@ -1175,8 +1204,8 @@
         }
 
         function spinPopcorn(winner, winnerIndex, token) {
-            var reduced = reducedMotion(), lockAt = reduced ? 0 : 3770;
-            var burstAt = lockAt + 150, revealDuration = reduced ? 360 : 960;
+            var reduced = reducedMotion(), lockAt = reduced ? 0 : POPCORN_TIMING.lock;
+            var burstAt = lockAt + POPCORN_TIMING.burstDelay, revealDuration = reduced ? 360 : POPCORN_TIMING.reveal;
             var started = performance.now();
             var stage = byId('wwPopcornStage');
             var card = byId('pcwinnerCard'), poster = byId('pcwwPosterOrigin');
@@ -1205,20 +1234,25 @@
                 if (!page.isConnected || activeSkin !== 'popcorn') { cancelSpin(); return; }
                 var elapsed = Math.max(0, now - started);
                 if (!locked) {
-                    var phase = reduced ? 39 : popcornPhase(elapsed);
+                    var phase = reduced ? POPCORN_VISUAL.target : popcornPhase(elapsed);
                     renderPopcornReel(phase);
                     var slot = Math.floor(phase + 1e-7);
                     // Update the crossing even when throttled: never replay missed ticks.
-                    if (!reduced && elapsed < 3550 && slot > lastSlot && now - lastTickAt >= 125) {
-                        wheelSound.popcornTick(elapsed >= 2200, elapsed < 1560);
+                    if (!reduced && elapsed < POPCORN_TIMING.dragEnd && slot > lastSlot
+                        && now - lastTickAt >= POPCORN_TIMING.crossingTickGap) {
+                        wheelSound.popcornTick(elapsed >= POPCORN_TIMING.travelEnd, elapsed < 1560);
                         lastTickAt = now;
                     }
                     lastSlot = slot;
-                    stage.setAttribute('data-motion', elapsed < 200 ? 'launch' : elapsed < 2200 ? 'travel' : elapsed < 3550 ? 'deceleration' : 'settle');
-                    if (elapsed >= 3550 || reduced) reelBoxes[39 % REEL_BOX_COUNT].classList.add('wwSelectedBucket');
+                    stage.setAttribute('data-motion', elapsed < POPCORN_TIMING.launchEnd ? 'launch'
+                        : elapsed < POPCORN_TIMING.travelEnd ? 'travel'
+                        : elapsed < POPCORN_TIMING.dragEnd ? 'deceleration' : 'settle');
+                    if (elapsed >= POPCORN_TIMING.dragEnd || reduced) {
+                        reelBoxes[POPCORN_VISUAL.target % REEL_BOX_COUNT].classList.add('wwSelectedBucket');
+                    }
                     if (elapsed >= lockAt) {
                         locked = true;
-                        renderPopcornReel(39);
+                        renderPopcornReel(POPCORN_VISUAL.target);
                         wheelSound.popcornSettle();
                         stage.classList.add('wwSettling');
                         stage.setAttribute('data-motion', 'anticipation');

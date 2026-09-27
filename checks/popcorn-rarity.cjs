@@ -54,6 +54,8 @@ for (const [rating, expected] of cases) {
     assert.match(js, /document\.createElementNS\([^)]*'svg'\)/, 'aura uses a real SVG layer');
     assert.match(css, /\.wwPopcornBucketArt\s*\{[^}]*popcorn-vector\.svg/s, 'bucket artwork remains the existing vector');
     assert.match(css, /\.wwRarityAura\s*\{[^}]*pointer-events:\s*none/s, 'aura is decorative only');
-    assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.wwRarityAura\s*\{[^}]*transition:\s*none/, 'reduced motion preserves color without pulse transitions');
+    assert.match(css, /prefers-reduced-motion:reduce[\s\S]*\.wwPopcornBucketArt\s*\{[^}]*transform:\s*none[^}]*transition:\s*none/, 'reduced motion keeps rarity color while disabling the crossing scale pulse');
+    assert.match(css, /\.wwRarityHalo\s*\{[^}]*stroke:\s*none/s, 'soft halo has no hard circular ring');
+    assert.match(css, /@media \(max-width:640px\)[\s\S]*\.wwRarityAura\s*\{[^}]*width:\s*104%/s, 'narrow layouts tighten the reusable aura');
     console.log('PASS: exact CommunityRating rarity boundaries, real-candidate reel mapping, selected-winner continuity, bounded DOM, no rarity requests, and unchanged uniform selection.');
 })().catch(error => { console.error(error); process.exit(1); });

@@ -47,23 +47,31 @@ const nextFrame = async (e, now) => {
     assert(fs.existsSync(path.join(plugin, 'Web/Assets/README-v2.txt')));
     assert(!/['"]popcorn-(?:spin-start|reel-tick|slow-tick|stop|reveal)\.wav/.test(js), 'old audio is inactive');
     const motion = {};
-    vm.runInNewContext(js.slice(js.indexOf('    function popcornPhase('), js.indexOf('    function createApp(')) + ';this.phase=popcornPhase;', motion);
+    vm.runInNewContext(js.slice(js.indexOf('    var POPCORN_TIMING'), js.indexOf('    function createApp(')) + ';this.phase=popcornPhase;this.timing=POPCORN_TIMING;', motion);
     const speed = t => (motion.phase(t + .1) - motion.phase(t - .1)) / .2;
     assert(speed(10) < speed(100) && speed(100) < speed(199), 'smooth acceleration');
     assert(Math.abs(speed(500) - speed(2000)) < 1e-8, 'constant fast travel');
-    assert(speed(2250) > speed(2700) && speed(2700) > speed(3200), 'progressive drag');
-    assert(motion.phase(3650) > 39 && motion.phase(3650) < 39.1, 'subtle overshoot');
-    assert.equal(motion.phase(3770), 39, 'exact center lock');
+    assert(speed(2250) > speed(3000) && speed(3000) > speed(3750), 'progressive quartic drag');
+    assert(motion.phase(4110) > 39 && motion.phase(4110) < 39.1, 'subtle overshoot');
+    assert.equal(motion.phase(4220), 39, 'exact center lock');
     const crossingTimes = [];
     let previous = 0, lastTick = -1000;
-    for (let t = 0; t < 3550; t += 1000 / 60) {
+    for (let t = 0; t < motion.timing.dragEnd; t += 1000 / 60) {
         const slot = Math.floor(motion.phase(t) + 1e-7);
         if (slot > previous && t-lastTick >= 125) { crossingTimes.push(t); lastTick=t; }
         previous=slot;
     }
     const spacing = crossingTimes.slice(1).map((t,i) => t-crossingTimes[i]);
     assert(spacing.every(t => t >= 125), 'maximum eight crossing ticks per second');
-    assert(spacing.at(-1) > spacing.at(-2), 'final crossings spread out');
+    const actualCrossings = [];
+    previous = Math.floor(motion.phase(motion.timing.travelEnd));
+    for (let t = motion.timing.travelEnd; t <= motion.timing.dragEnd; t += 1) {
+        const slot = Math.floor(motion.phase(t) + 1e-7);
+        if (slot > previous) actualCrossings.push(t);
+        previous = slot;
+    }
+    const finalSpacing = actualCrossings.slice(-4).slice(1).map((t, i) => t - actualCrossings.slice(-4)[i]);
+    assert(finalSpacing[2] > finalSpacing[1] && finalSpacing[1] > finalSpacing[0], 'final three real center crossings build anticipation');
 
     for (const count of [0, 1, 50, 500, 1000]) {
         const e = make({items: titles(count)});
@@ -74,7 +82,7 @@ const nextFrame = async (e, now) => {
         e.els.wwSkin.value = 'popcorn';
         await e.fire('wwSkin', 'change');
         assert.equal(e.page.attrs['data-skin'], 'popcorn');
-        assert.equal(reelSize(e), 15, 'mode switch never maps candidates to boxes');
+        assert.equal(reelSize(e), 15, 'mode switch keeps the fixed reel bound');
         assert.equal(e.requests.filter(x => x.includes('/Items')).length, 1, 'mode switch does not reload');
         if (count === 0) {
             assert(e.els.wwSpin.disabled);
@@ -138,33 +146,33 @@ const nextFrame = async (e, now) => {
     await reveal.fire('wwSpin');
     // Geometry is sampled during preparation, never during the animation loop.
     reveal.els.wwPopcornStage.getBoundingClientRect = () => { throw Error('layout read in animation'); };
-    await nextFrame(reveal, 3770);
+    await nextFrame(reveal, 4220);
     assert(reveal.els.wwPopcornStage.classes.has('wwSettling'));
     assert(reveal.els.pcwinnerCard.classes.has('wwPopcornPreparing'), 'winner waits for anticipation');
-    await nextFrame(reveal, 3919);
+    await nextFrame(reveal, 4369);
     assert(reveal.els.pcwinnerCard.classes.has('wwPopcornPreparing'));
-    await nextFrame(reveal, 3920);
+    await nextFrame(reveal, 4370);
     assert(reveal.els.wwPopcornStage.classes.has('wwRevealing'));
     assert(!reveal.els.pcwinnerCard.classes.has('hidden'));
     const historyAtBurst = JSON.parse(reveal.saved[key]).history.length;
-    await nextFrame(reveal, 4879);
+    await nextFrame(reveal, 5329);
     assert(reveal.els.pcwwPlay.disabled, 'Popcorn actions locked through their final fade');
     assert.equal(JSON.parse(reveal.saved[key]).history.length, historyAtBurst, 'reveal records once');
-    await nextFrame(reveal, 4880);
+    await nextFrame(reveal, 5330);
     assert(!reveal.els.wwPopcornStage.classes.has('wwRevealing'));
     assert(!reveal.els.wwSpin.disabled);
     assert.equal(reveal.frames.length, 0, 'one clock drains completely');
     assert.equal(reveal.audio.filter(e => e.url.endsWith('popcorn-stop-v2.wav')).length, 1, 'single lock cue');
     assert.equal(reveal.audio.filter(e => e.url.endsWith('popcorn-reveal-v2.wav')).length, 1, 'single reveal cue');
-    assert.equal(reveal.audio.find(e => e.url.endsWith('popcorn-stop-v2.wav')).time, 3770);
-    assert.equal(reveal.audio.find(e => e.url.endsWith('popcorn-reveal-v2.wav')).time, 3920);
+    assert.equal(reveal.audio.find(e => e.url.endsWith('popcorn-stop-v2.wav')).time, 4220);
+    assert.equal(reveal.audio.find(e => e.url.endsWith('popcorn-reveal-v2.wav')).time, 4370);
 
     const repeated = make({items: titles(2), reduced: false}); await repeated.start();
     repeated.els.wwSkin.value='popcorn'; await repeated.fire('wwSkin','change');
     for(let spin=0;spin<5;spin++) {
         await repeated.fire('wwSpin');
-        for(let time=0;time<=3900;time+=100) await nextFrame(repeated,time);
-        await nextFrame(repeated,3920); await nextFrame(repeated,4880);
+        for(let time=0;time<=4350;time+=100) await nextFrame(repeated,time);
+        await nextFrame(repeated,4370); await nextFrame(repeated,5330);
         assert.equal(reelSize(repeated),15); assert.equal(repeated.els.wwPopcornBurst.children.length,22);
         assert.equal(repeated.frames.length,0);
     }
@@ -172,12 +180,12 @@ const nextFrame = async (e, now) => {
 
     const leave = make({items: titles(2), reduced: false}); await leave.start();
     leave.els.wwSkin.value='popcorn'; await leave.fire('wwSkin','change'); await leave.fire('wwSpin');
-    await nextFrame(leave,3800); leave.captures.viewhide();
+    await nextFrame(leave,4250); leave.captures.viewhide();
     while(leave.frames.length) await nextFrame(leave,10000);
     assert(leave.els.pcwinnerCard.classes.has('hidden'),'leaving page clears unrevealed pick');
     assert(!leave.audio.some(e=>e.url.endsWith('popcorn-reveal-v2.wav')),'leaving cannot play delayed flourish');
 
-    for (const time of [100, 3760, 3800, 4100, 4800]) {
+    for (const time of [100, 3990, 4230, 4500, 5250]) {
         const e = make({items: titles(2), reduced: false}); await e.start();
         e.els.wwSkin.value='popcorn'; await e.fire('wwSkin','change'); await e.fire('wwSpin');
         await nextFrame(e,time);
