@@ -1,21 +1,21 @@
-[
-  {
-    "guid": "4c6f5316-58f6-4d90-87cc-b8ca47b40a01",
-    "name": "Watch Wheel",
-    "description": "Spin a wheel to choose what to watch from your Jellyfin library.",
-    "overview": "A configurable watch wheel for Jellyfin movies and TV series with user-specific filtering and playback progress support.",
-    "owner": "Watch Wheel Contributors",
-    "category": "General",
-    "imageUrl": "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
-    "versions": [
-      {
-        "version": "1.0.2.0",
-        "changelog": "Initial public release of Watch Wheel.",
-        "targetAbi": "10.11.11.0",
-        "sourceUrl": "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.0/WatchWheel-1.0.2.0.zip",
-        "checksum": "13434ca071a625a0ad8e51d127df2006",
-        "timestamp": "2026-09-22T19:00:00Z"
-      }
-    ]
-  }
+﻿[
+    {
+        "guid":  "4c6f5316-58f6-4d90-87cc-b8ca47b40a01",
+        "name":  "Watch Wheel",
+        "description":  "Spin a wheel to choose what to watch from your Jellyfin library.",
+        "overview":  "A cinematic Jellyfin watch picker with Classic and Popcorn modes, filtering, watcher profiles, and personalized media selection.",
+        "owner":  "Watch Wheel Contributors",
+        "category":  "General",
+        "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
+        "versions":  [
+                         {
+                             "version":  "1.1.0.0",
+                             "changelog":  "Major release: Popcorn Mode, CommunityRating rarity auras, watcher profiles, Classic theater atmosphere, improved filters and Settings, finalized Popcorn audio, and production hardening.",
+                             "targetAbi":  "10.11.11.0",
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.1.0.0/WatchWheel-1.1.0.0.zip",
+                             "checksum":  "a069acdaeccc56b69a50731ee3e95c1a",
+                             "timestamp":  "2026-09-27T21:45:48Z"
+                         }
+                     ]
+    }
 ]
