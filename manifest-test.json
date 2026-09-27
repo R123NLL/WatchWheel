@@ -9,12 +9,12 @@
         "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
         "versions":  [
                          {
-                             "version":  "1.0.2.5",
-                             "changelog":  "TEST BUILD: cinematic Popcorn Mode visual polish, stronger winner burst, mode-specific sound cues and improved Android TV parity.",
+                             "version":  "1.0.2.6",
+                             "changelog":  "TEST BUILD: dedicated Popcorn winner scene, vector artwork, independent reveal architecture, improved motion choreography and Popcorn SFX V2.",
                              "targetAbi":  "10.11.11.0",
-                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.5-test/WatchWheel-1.0.2.5.zip",
-                             "checksum":  "44ae2b3584f78d4b5082852ae9c22945",
-                             "timestamp":  "2026-09-26T19:32:46Z"
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.0.2.6-test/WatchWheel-1.0.2.6.zip",
+                             "checksum":  "2a9b9bd8f8107daac552f05c845ba770",
+                             "timestamp":  "2026-09-27T06:17:54Z"
                          }
                      ]
     }
