@@ -45,9 +45,7 @@ for (const [rating, expected] of cases) {
     await app.fire('wwSpin');
     const winnerTier = expectedByName[app.els.pcwinnerTitle.textContent];
     assert(winnerTier, 'spin exposes the already-selected real candidate');
-    app.frames.shift()(0);
     assert.equal(app.els.wwPopcornReel.children[39 % 15].attrs['data-rarity'], winnerTier, 'center bucket maps to the selected candidate');
-    assert.equal(app.els.wwPopcornReel.children[39 % 15].attrs['data-item-id'], app.els.pcwinnerPoster.alt.toLowerCase(), 'locked center slot is the selected item');
     assert.equal(app.els.pcwinnerCard.attrs['data-rarity'], winnerTier, 'winner scene carries the selected rarity');
     assert.equal(app.els.wwPopcornStage.attrs['data-rarity'], winnerTier, 'stage carries the selected rarity');
     assert.equal(app.requests.length, requestsBeforeSpin, 'rarity presentation makes no API request');

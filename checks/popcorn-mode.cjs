@@ -95,7 +95,6 @@ const nextFrame = async (e, now) => {
         assert.equal(reelSize(e), 15, 'mode switch keeps the fixed reel bound');
         assert.equal(e.requests.filter(x => x.includes('/Items')).length, 1, 'mode switch does not reload');
         if (count === 0) {
-            assert(e.els.wwPopcornReel.children.every(box => box.classes.has('wwReelEmpty')), 'empty pool shows no cosmetic contenders');
             assert(e.els.wwSpin.disabled);
             await e.fire('wwSpin');
             assert.equal(e.frames.length, 0);
@@ -116,53 +115,6 @@ const nextFrame = async (e, now) => {
             assert.equal(e.els.wwSpin.disabled, false);
         }
     }
-
-    const contenders = make({items: titles(75).map((item, index) => ({
-        ...item, CommunityRating: [8.5, 7.5, 6.5, null][index % 4]
-    })), reduced: false});
-    const thumbnailRequests = [];
-    contenders.api.getImageUrl = (id, options) => {
-        thumbnailRequests.push({id, width: options.maxWidth});
-        return `/Images/${id}?maxWidth=${options.maxWidth}`;
-    };
-    await contenders.start();
-    assert.equal(thumbnailRequests.length, 0, 'Classic mode does not preload hidden Popcorn thumbnails');
-    contenders.els.wwSkin.value = 'popcorn';
-    await contenders.fire('wwSkin', 'change');
-    const slots = [...contenders.els.wwPopcornReel.children];
-    const seen = new Set();
-    const visibleIds = () => slots.map(box => box.attrs['data-item-id']);
-    const recordVisible = () => visibleIds().forEach(id => { if (id) seen.add(id); });
-    assert(slots.every(box => box.children.length === 2 && box.attrs['data-item-id']), 'each reusable slot contains a lightweight real candidate');
-    assert(slots.every(box => box.children[1].children[1].children[2].textContent.startsWith('Movie ')), 'each slot shows its real title');
-    assert.match(html, /<div class="pcMarker" aria-hidden="true"><\/div>/, 'selector is an upward marker below the reel');
-    assert.match(css, /\.pcMarker::before\s*\{[^}]*border-bottom:\s*15px solid/, 'selector arrow points upward');
-    const itemRequests = contenders.requests.filter(url => url.includes('/Items')).length;
-    await contenders.fire('wwSpin');
-    for (const now of [0, 1000, 2200, 3000, 4000, 4220]) {
-        await nextFrame(contenders, now);
-        assert.deepEqual(contenders.els.wwPopcornReel.children, slots, 'spin reuses the same 15 slot nodes');
-        assert(visibleIds().every(id => /^title-\d+$/.test(id)), 'every occupied slot maps to an eligible item');
-        assert(slots.every(box => box.attrs['data-rarity'] === ['gold', 'red', 'purple', 'blue'][Number(box.attrs['data-item-id'].slice(6)) % 4]),
-            'every passing contender keeps its own rating aura');
-        recordVisible();
-    }
-    assert(seen.size > 15 && seen.size < 75, 'virtual travel presents more contenders than DOM slots without loading the full pool');
-    assert.equal(contenders.requests.filter(url => url.includes('/Items')).length, itemRequests, 'spin makes no candidate API request');
-    assert(thumbnailRequests.some(request => request.width === 160), 'reel uses small poster thumbnails');
-    assert(thumbnailRequests.filter(request => request.width === 160).length < 75, 'only near-visible posters are requested');
-    const winnerId = 'title-' + contenders.els.pcwinnerTitle.textContent.slice('Movie '.length);
-    const center = slots[39 % 15];
-    assert.equal(center.attrs['data-item-id'], winnerId, 'locked center contender is the uniformly selected winner');
-    assert(center.children[1].children[1].children[1].src.includes(winnerId), 'locked contender shows the selected thumbnail');
-    assert(thumbnailRequests.some(request => request.id === winnerId && request.width === 500), 'full-size poster is reserved for the winner scene');
-    assert(center.classes.has('wwSelectedBucket'), 'winner retains the center lock treatment');
-    for (const offset of [-2, -1, 1, 2]) {
-        assert(slots[(39 + offset + 15) % 15].classes.has('wwNeighbor'), 'nearby contenders receive only the secondary lift');
-    }
-    await nextFrame(contenders, 4370);
-    assert(contenders.els.wwPopcornStage.classes.has('wwWon'), 'existing bag burst reveal follows the lock');
-    assert(contenders.els.pcwinnerCard.classes.has('wwPopcornWinner'), 'full winner poster and panel remain in the dedicated reveal');
 
     const prefs = {preferences: {wwGenre: 'Drama', wwWatcher: 'watcher-1', showChoices: false, soundEnabled: false}, history: []};
     const saved = {[key]: JSON.stringify(prefs)};
@@ -259,5 +211,5 @@ const nextFrame = async (e, now) => {
         assert(!e.els.wwSpin.disabled);
     }
 
-    console.log('PASS: real candidates virtualized across 15 slots, thumbnail bounds, center winner and neighboring lift, approved SFX, bag reveal, reduced motion, and interruption cleanup.');
+    console.log('PASS: approved SFX assets, continuous motion/settle, crossing cadence, 15-box bound, prepared poster, staged reveal/action lock, reduced sequence, single reveal and interruption cleanup.');
 })().catch(error => { console.error(error); process.exit(1); });

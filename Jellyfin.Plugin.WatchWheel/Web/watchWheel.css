@@ -493,7 +493,7 @@
     filter: drop-shadow(0 14px 10px rgba(0,0,0,.72));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBox::before,
-#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox > span { display: none; }
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox span { display: none; }
 #WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket {
     border: 0; box-shadow: none;
     filter: drop-shadow(0 0 19px rgba(255,201,94,.8)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
@@ -694,7 +694,7 @@
 #WatchWheelPage[data-skin="popcorn"] #wwWinnerEmpty { display: none !important; }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornStage { height: clamp(560px,70vh,740px); }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
-    background: none;
+    background-image: url("../WatchWheel/Assets/popcorn-vector.svg");
 }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornHero {
     width: clamp(200px,22vw,250px); aspect-ratio: 3 / 4; bottom: 18px;
@@ -703,20 +703,7 @@
 #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero {
     animation: pcBucketGrow 240ms cubic-bezier(.16,.7,.2,1) both;
 }
-#WatchWheelPage .pcMarker {
-    position: absolute; left: 50%; bottom: -34px; width: 30px; height: 45px;
-    transform: translateX(-50%); z-index: 10; pointer-events: none;
-    filter: drop-shadow(0 0 8px #ffc96c);
-}
-#WatchWheelPage .pcMarker::before {
-    content: ""; position: absolute; top: 0; left: 5px;
-    border-left: 10px solid transparent; border-right: 10px solid transparent;
-    border-bottom: 15px solid #ffe19a;
-}
-#WatchWheelPage .pcMarker::after {
-    content: ""; position: absolute; top: 13px; left: 14px;
-    width: 2px; height: 31px; background: #ffe19a;
-}
+#WatchWheelPage .pcMarker { position: absolute; left: 50%; bottom: -12px; width: 110px; height: 147px; transform: translateX(-50%); z-index: 10; pointer-events: none; }
 #WatchWheelPage .pcBucket .pcLeftLid { transform-origin: 49px 149px; }
 #WatchWheelPage .pcBucket .pcRightLid { transform-origin: 251px 149px; }
 #WatchWheelPage .pcBucket .pcRays { opacity: .22; transform-origin: 150px 150px; }
@@ -871,39 +858,8 @@
     isolation: isolate; overflow: visible; border: 0; background: none;
     box-shadow: none; filter: none;
 }
-#WatchWheelPage[data-skin="popcorn"] .wwPopcornBox.wwReelEmpty { opacity: 0; }
-#WatchWheelPage[data-skin="popcorn"] .wwReelVisual {
-    position: absolute; inset: 0; transition: transform 220ms ease-out;
-}
-#WatchWheelPage[data-skin="popcorn"] .wwReelCandidate {
-    position: absolute; z-index: 3; top: calc(100% - 232px); left: 7%; right: 7%; height: 138px;
-    display: flex; flex-direction: column; overflow: hidden; border-radius: 6px;
-    border: 1px solid rgba(var(--ww-rarity-rgb),.65);
-    background: #121722; box-shadow: 0 0 10px rgba(var(--ww-rarity-rgb),.28),0 7px 15px #0009;
-}
-#WatchWheelPage[data-skin="popcorn"] .wwReelPoster,
-#WatchWheelPage[data-skin="popcorn"] .wwReelPosterFallback {
-    display: block; width: 100%; height: 105px; flex: none; object-fit: cover;
-}
-#WatchWheelPage[data-skin="popcorn"] .wwReelPosterFallback {
-    position: absolute; top: 0; left: 0; display: grid; place-items: center;
-    color: #f3d4a3; background: linear-gradient(145deg,#283443,#151924); font-size: .7rem;
-    letter-spacing: .08em;
-}
-#WatchWheelPage[data-skin="popcorn"] .wwReelPoster { position: relative; z-index: 1; }
-#WatchWheelPage[data-skin="popcorn"] .wwReelTitle {
-    position: relative; z-index: 2; display: -webkit-box; overflow: hidden;
-    -webkit-box-orient: vertical; -webkit-line-clamp: 2;
-    padding: 3px 4px; color: #fff3df; background: #10131b;
-    font-size: 10px; font-weight: 600; line-height: 1.2; text-align: center;
-    overflow-wrap: anywhere; text-shadow: none;
-}
-#WatchWheelPage[data-skin="popcorn"] .wwSettling .wwNeighbor .wwReelVisual,
-#WatchWheelPage[data-skin="popcorn"] .wwWon .wwNeighbor .wwReelVisual {
-    transform: translateY(var(--ww-neighbor-lift));
-}
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBucketArt {
-    position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 94px;
+    position: absolute; z-index: 2; inset: 0;
     background: url("../WatchWheel/Assets/popcorn-vector.svg") center bottom / contain no-repeat;
     transform: scale(var(--ww-cross-scale)); transform-origin: 50% 76%;
     transition: transform 70ms ease-out;
@@ -976,9 +932,6 @@
     #WatchWheelPage .wwRarityBaseGlow { transform: scaleX(calc(var(--ww-under-scale) - .1 + var(--ww-under-cross))); }
 }
 @media (prefers-reduced-motion:reduce) {
-    #WatchWheelPage[data-skin="popcorn"] .wwReelVisual { transition: none; }
-    #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwNeighbor .wwReelVisual,
-    #WatchWheelPage[data-skin="popcorn"] .wwWon .wwNeighbor .wwReelVisual { transform: none; }
     #WatchWheelPage[data-skin="popcorn"] .wwPopcornBucketArt { transform: none; transition: none; }
     #WatchWheelPage[data-skin="popcorn"] .wwRarityHalo,
     #WatchWheelPage[data-skin="popcorn"] .wwRarityBaseGlow { transition: none; }
