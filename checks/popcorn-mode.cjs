@@ -28,9 +28,12 @@ const nextFrame = async (e, now) => {
     assert.match(css, /\.pcMarker\s*\{[^}]*bottom:\s*-17px;[^}]*width:\s*36px;[^}]*height:\s*34px/s, 'selector sits below center within the existing stage-to-button gap');
     assert.match(css, /\.wwWon \.pcMarker\s*\{\s*opacity:\s*\.4;/, 'selector dims after reveal');
     assert.match(css, /\.wwRarityHalo\s*\{[^}]*var\(--ww-halo-idle\)[^}]*var\(--ww-cross-alpha\)/s, 'rarity remains visible away from crossings');
-    assert.match(css, /\.wwPopcornBucketArt\s*\{[^}]*drop-shadow\(0 0 6px rgba\(var\(--ww-rarity-rgb\)/s, 'bucket rim carries the persistent rarity color');
+    assert.match(css, /\.wwPopcornBucketArt\s*\{[^}]*drop-shadow\(0 0 9px rgba\(var\(--ww-rarity-rgb\)/s, 'bucket rim carries the persistent rarity color');
     assert.match(css, /\.wwPopcornBox\.wwNearbyLoser\s*\{\s*--ww-neighbor-y:\s*-8px;\s*opacity:\s*\.4;/, 'nearby losers get only a small lift and reduced emphasis');
     assert.match(css, /\.wwSelectedBucket \.wwRarityHalo\s*\{\s*opacity:\s*var\(--ww-halo-lock\)/, 'winner gets the strongest rarity treatment');
+    assert.match(css, /\.wwPopcornBucketArt\s*\{\s*position:\s*absolute;\s*z-index:\s*3;/, 'existing bucket art remains in front of its poster');
+    assert.match(css, /\.wwReelPoster\s*\{\s*position:\s*absolute;\s*z-index:\s*2;/, 'reel poster stays inside the bucket presentation');
+    assert.match(css, /\.wwWon \.wwPopcornBox\.wwNearbyLoser \.wwReelPoster\s*\{\s*--ww-poster-rise:\s*-55%;/, 'nearby losers receive the moderate poster rise');
     assert.match(js, /var winner = state\.items\[index\]/);
     const art = ['cinematic_popcorn_reveal_stage.png', 'popcorn-vector.svg', 'popcorn-kernel.svg'];
     const classicArt = 'classic-atmosphere.svg';
@@ -123,6 +126,62 @@ const nextFrame = async (e, now) => {
         }
     }
 
+    const rich = make({items: titles(70), reduced: false});
+    const imageUrls = [];
+    rich.api.getImageUrl = (id, options) => {
+        imageUrls.push({id, options});
+        return `/image/${id}/${options.maxWidth}`;
+    };
+    await rich.start();
+    assert.equal(imageUrls.length, 0, 'hidden Popcorn reel does not load thumbnails in Classic mode');
+    rich.els.wwSkin.value = 'popcorn'; await rich.fire('wwSkin', 'change');
+    const richBoxes = rich.els.wwPopcornReel.children;
+    assert.equal(richBoxes.length, 15, 'large pool reuses the same fifteen buckets');
+    assert(richBoxes.every(box => box.children.length === 3 && box.children[2].className === 'wwPopcornBucketArt'), 'poster is an added child behind existing bucket art');
+    assert.equal(imageUrls.length, 15, 'only initial visible/near-visible thumbnails are requested');
+    const image = richBoxes[0].children[1].children[1];
+    assert.equal(richBoxes[0].children[1].children[0].textContent, '✦', 'neutral fallback exists inside every bucket');
+    image.onload(); assert(richBoxes[0].classes.has('wwPosterReady'), 'loaded thumbnail becomes visible');
+    image.onerror(); assert(!richBoxes[0].classes.has('wwPosterReady'), 'missing artwork returns to neutral fallback');
+    const candidateRequests = rich.requests.filter(x => x.includes('/Items')).length;
+    await rich.fire('wwSpin');
+    const winnerId = `title-${rich.els.pcwinnerTitle.textContent.split(' ').at(-1)}`;
+    const seen = new Set();
+    let staleImageLoad, staleImageId;
+    for (const time of [0, 600, 1200, 2000, 3000, 3900, 4220]) {
+        await nextFrame(rich, time);
+        richBoxes.forEach(box => seen.add(box.attrs['data-item-id']));
+        if (time === 0) {
+            staleImageLoad = richBoxes[0].children[1].children[1].onload;
+            staleImageId = richBoxes[0].attrs['data-item-id'];
+        }
+        if (time === 3000) {
+            assert.notEqual(richBoxes[0].attrs['data-item-id'], staleImageId, 'offscreen slot is recycled to another real candidate');
+            staleImageLoad();
+            assert(!richBoxes[0].classes.has('wwPosterReady'), 'late load cannot display a recycled candidate poster');
+        }
+    }
+    assert(seen.size > 15, 'recycled slots show more real candidates than the DOM count');
+    assert.equal(richBoxes[9].attrs['data-item-id'], winnerId, 'final center bucket is the full-pool selected winner');
+    assert(richBoxes.every(box => box.attrs['data-item-id'].startsWith('title-')), 'every reel slot maps to an eligible item');
+    assert.equal(rich.requests.filter(x => x.includes('/Items')).length, candidateRequests, 'spin makes no additional candidate API fetch');
+    const thumbs = imageUrls.filter(entry => entry.options.maxWidth === 160);
+    assert(thumbs.length <= 69 && thumbs.every(entry => entry.options.maxHeight === 240 && entry.options.quality === 65), 'only bounded modest thumbnails load during the spin');
+    assert.equal(imageUrls.filter(entry => entry.options.maxWidth === 500).length, 1, 'full-size artwork remains winner-only');
+    await nextFrame(rich, 4370);
+    assert.equal(richBoxes.filter(box => box.classes.has('wwSelectedBucket')).length, 1, 'only winner bucket is selected for pop');
+    assert(richBoxes[8].classes.has('wwNearbyLoser') && !richBoxes[8].classes.has('wwSelectedBucket'), 'near loser only receives secondary poster treatment');
+    await nextFrame(rich, 4490); await nextFrame(rich, 5330);
+    assert.equal(rich.audio.filter(entry => entry.url.endsWith('winner-reveal.wav')).length, 1, 'non-winner poster rises add no reveal audio');
+    await rich.fire('wwApplyFilters');
+    assert(!rich.els.wwPopcornStage.classes.has('wwWon'), 'Refresh clears the prior poster reveal state');
+    assert(richBoxes.every(box => !box.classes.has('wwNearbyLoser')), 'Refresh clears loser positions');
+    await rich.fire('wwSpin');
+    assert(!rich.els.wwPopcornStage.classes.has('wwWon'), 'Spin Again starts with posters lowered');
+    rich.els.wwSkin.value = 'classic'; await rich.fire('wwSkin', 'change');
+    assert(richBoxes.every(box => !box.classes.has('wwPosterReady') && !box.classes.has('wwNearbyLoser')), 'mode switch clears poster and loser state');
+    assert(richBoxes.every(box => box.children[1].children[1].src === undefined), 'mode switch clears thumbnail sources');
+
     const prefs = {preferences: {wwGenre: 'Drama', wwWatcher: 'watcher-1', showChoices: false, soundEnabled: false}, history: []};
     const saved = {[key]: JSON.stringify(prefs)};
     const preserved = make({saved});
@@ -172,7 +231,7 @@ const nextFrame = async (e, now) => {
     await nextFrame(reveal, 4220);
     assert(reveal.els.wwPopcornStage.classes.has('wwSettling'));
     const lockedBoxes = reveal.els.wwPopcornReel.children;
-    assert(lockedBoxes.every(box => box.children.length === 2), 'bounded reel remains bucket and aura only');
+    assert(lockedBoxes.every(box => box.children.length === 3), 'bounded reel keeps bucket art, aura, and an internal poster');
     assert(lockedBoxes[9].classes.has('wwSelectedBucket'), 'winner alone owns the selected bucket');
     for (const i of [7, 8, 10, 11]) assert(lockedBoxes[i].classes.has('wwNearbyLoser'), `nearby loser ${i} acknowledges lock`);
     assert.equal(lockedBoxes.filter(box => box.classes.has('wwNearbyLoser')).length, 4, 'only four neighbors lift');
@@ -232,5 +291,5 @@ const nextFrame = async (e, now) => {
         assert(!e.els.wwSpin.disabled);
     }
 
-    console.log('PASS: approved SFX assets, continuous motion/settle, crossing cadence, 15-box bound, prepared poster, staged reveal/action lock, reduced sequence, single reveal and interruption cleanup.');
+    console.log('PASS: approved SFX, continuous motion, 15-bucket virtual media reel, thumbnail fallback/recycling, existing winner reveal, silent loser posters, reduced sequence and interruption cleanup.');
 })().catch(error => { console.error(error); process.exit(1); });

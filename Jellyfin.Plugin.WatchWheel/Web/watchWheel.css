@@ -859,13 +859,33 @@
     box-shadow: none; filter: none;
 }
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBucketArt {
-    position: absolute; z-index: 2; inset: 0;
+    position: absolute; z-index: 3; inset: 0;
     background: url("../WatchWheel/Assets/popcorn-vector.svg") center bottom / contain no-repeat;
     transform: scale(var(--ww-cross-scale)); transform-origin: 50% 76%;
     translate: 0 var(--ww-neighbor-y, 0px);
     transition: transform 70ms ease-out, translate 220ms ease-out;
     filter: drop-shadow(0 0 9px rgba(var(--ww-rarity-rgb),var(--ww-rim-alpha)))
         drop-shadow(0 14px 10px rgba(0,0,0,.72));
+}
+#WatchWheelPage[data-skin="popcorn"] .wwReelPoster {
+    position: absolute; z-index: 2; left: 18%; bottom: 28%; width: 64%; height: 96%;
+    box-sizing: border-box; overflow: hidden; pointer-events: none;
+    border: 1px solid rgba(255,226,177,.7); border-radius: 5px 5px 2px 2px;
+    background: linear-gradient(160deg,#293042,#10131b 75%);
+    box-shadow: 0 0 7px rgba(0,0,0,.72);
+    translate: 0 var(--ww-neighbor-y, 0px);
+    transform: translateY(var(--ww-poster-rise, 0%));
+    transition: translate 220ms ease-out, transform 560ms cubic-bezier(.2,.7,.2,1);
+}
+#WatchWheelPage[data-skin="popcorn"] .wwReelPoster img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity 150ms ease-out;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwPosterReady .wwReelPoster img { opacity: 1; }
+#WatchWheelPage[data-skin="popcorn"] .wwReelPosterFallback {
+    position: absolute; inset: 0; display: grid; place-items: start center;
+    box-sizing: border-box; padding-top: 5px;
+    color: #cab894; font-size: clamp(1rem,2vw,1.7rem);
 }
 #WatchWheelPage[data-skin="popcorn"] .wwRarityAura {
     position: absolute; z-index: 1; pointer-events: none;
@@ -901,6 +921,10 @@
 #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox:not(.wwSelectedBucket) { opacity: .25; }
 #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornBox.wwNearbyLoser,
 #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox.wwNearbyLoser { --ww-neighbor-y: -8px; opacity: .4; }
+#WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox:not(.wwSelectedBucket) .wwReelPoster {
+    --ww-poster-rise: -35%; transition-delay: 0ms, 140ms;
+}
+#WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox.wwNearbyLoser .wwReelPoster { --ww-poster-rise: -55%; }
 #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwSelectedBucket,
 #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwSelectedBucket { filter: none; }
 #WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket[data-rarity="gold"] .wwRaritySpark {
@@ -941,6 +965,8 @@
 }
 @media (prefers-reduced-motion:reduce) {
     #WatchWheelPage[data-skin="popcorn"] .wwPopcornBucketArt { transform: none; transition: none; }
+    #WatchWheelPage[data-skin="popcorn"] .wwReelPoster,
+    #WatchWheelPage[data-skin="popcorn"] .wwReelPoster img { transition: none; }
     #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornBox.wwNearbyLoser,
     #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox.wwNearbyLoser { --ww-neighbor-y: 0px; }
     #WatchWheelPage[data-skin="popcorn"] .wwRarityAura { transition: none; }

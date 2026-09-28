@@ -58,7 +58,7 @@ for (let i = 0; i < tiers.length; i++) {
         {Id: 'blue', Name: 'Blue', Type: 'Movie', CommunityRating: null}
     ];
     const expectedByName = {Gold: 'gold', Red: 'red', Purple: 'purple', Blue: 'blue'};
-    const app = make({items});
+    const app = make({items, reduced: false});
     await app.start();
     assert.equal(app.els.wwPopcornReel.children.length, 15, 'rarity reel stays bounded');
     const actualTiers = app.els.wwPopcornReel.children.map(box => box.attrs['data-rarity']);
@@ -70,6 +70,14 @@ for (let i = 0; i < tiers.length; i++) {
     await app.fire('wwSpin');
     const winnerTier = expectedByName[app.els.pcwinnerTitle.textContent];
     assert(winnerTier, 'spin exposes the already-selected real candidate');
+    const frame = app.frames.shift();
+    app.now = 4220; frame(4220);
+    const itemById = new Map(items.map(item => [item.Id, item]));
+    for (const box of app.els.wwPopcornReel.children) {
+        const item = itemById.get(box.attrs['data-item-id']);
+        assert(item, 'virtualized rarity bucket maps to a real candidate');
+        assert.equal(box.attrs['data-rarity'], helper.tier(item.CommunityRating), 'bucket aura follows its current media identity');
+    }
     assert.equal(app.els.wwPopcornReel.children[39 % 15].attrs['data-rarity'], winnerTier, 'center bucket maps to the selected candidate');
     assert.equal(app.els.pcwinnerCard.attrs['data-rarity'], winnerTier, 'winner scene carries the selected rarity');
     assert.equal(app.els.wwPopcornStage.attrs['data-rarity'], winnerTier, 'stage carries the selected rarity');

@@ -328,6 +328,7 @@
         var context = canvas.getContext('2d');
         var wheelSound = createWheelSound(), soundEnabled = true, showChoices = true, activeSkin = 'classic';
         var reelBoxes = [], REEL_BOX_COUNT = 15, popcornFrame = null, reelStep = 112, reelPhase = 0;
+        var reelItems = [], reelWinnerIndex = 0;
         function createPopcornReel() {
             var reel = byId('wwPopcornReel');
             for (var i = 0; i < REEL_BOX_COUNT; i++) {
@@ -368,7 +369,16 @@
                 var art = document.createElement('div');
                 art.className = 'wwPopcornBucketArt';
                 art.setAttribute('aria-hidden', 'true');
-                box.appendChild(aura); box.appendChild(art); reel.appendChild(box); reelBoxes.push(box);
+                var sleeve = document.createElement('div');
+                sleeve.className = 'wwReelPoster';
+                var fallback = document.createElement('div');
+                fallback.className = 'wwReelPosterFallback'; fallback.textContent = '✦';
+                var image = document.createElement('img');
+                image.alt = ''; image.setAttribute('loading', 'lazy'); image.setAttribute('decoding', 'async');
+                sleeve.appendChild(fallback); sleeve.appendChild(image);
+                box._wwPosterImage = image;
+                box.appendChild(aura); box.appendChild(sleeve); box.appendChild(art);
+                reel.appendChild(box); reelBoxes.push(box);
             }
             for (var kernel = 0; kernel < 22; kernel++) {
                 var particle = document.createElement('span');
@@ -384,15 +394,57 @@
             renderPopcornReel(0);
         }
 
-        function bindPopcornReel(items, winnerIndex) {
-            var selected = POPCORN_VISUAL.target % REEL_BOX_COUNT;
-            var length = items && items.length ? items.length : 0;
-            for (var i = 0; i < reelBoxes.length; i++) {
-                var item = length
-                    ? items[((winnerIndex + i - selected) % length + length) % length]
-                    : null;
-                reelBoxes[i].setAttribute('data-rarity', getPopcornRarityTier(item && value(item, 'CommunityRating')));
+        function reelPosterUrl(id) {
+            if (typeof window.ApiClient.getImageUrl === 'function') {
+                return window.ApiClient.getImageUrl(id, { type: 'Primary', maxWidth: 160, maxHeight: 240, quality: 65 });
             }
+            return window.ApiClient.getUrl('Items/' + encodeURIComponent(id)
+                + '/Images/Primary?maxWidth=160&maxHeight=240&quality=65');
+        }
+
+        function clearReelImage(box) {
+            box.classList.remove('wwPosterReady');
+            var image = box._wwPosterImage;
+            image.onload = null; image.onerror = null;
+            if (typeof image.removeAttribute === 'function') image.removeAttribute('src');
+            else image.src = undefined;
+            box._wwImageId = null; box._wwPosterUrl = null;
+        }
+
+        function clearReelPosters() {
+            reelBoxes.forEach(clearReelImage);
+        }
+
+        function setReelCandidate(box, virtualIndex) {
+            var length = reelItems.length;
+            var item = length ? reelItems[((reelWinnerIndex + virtualIndex - POPCORN_VISUAL.target) % length + length) % length] : null;
+            var id = idOf(item);
+            if (box._wwVirtualIndex !== virtualIndex) {
+                box._wwVirtualIndex = virtualIndex;
+                box.setAttribute('data-rarity', getPopcornRarityTier(item && value(item, 'CommunityRating')));
+                if (box._wwItemId !== id) {
+                    box._wwItemId = id; box.setAttribute('data-item-id', id);
+                    clearReelImage(box);
+                }
+            }
+            if (activeSkin !== 'popcorn' || !id || box._wwImageId === id) return;
+            box._wwImageId = id;
+            var url = reelPosterUrl(id), image = box._wwPosterImage;
+            if (!url) return;
+            image.onload = function () {
+                if (box._wwItemId === id && box._wwPosterUrl === url) box.classList.add('wwPosterReady');
+            };
+            image.onerror = function () {
+                if (box._wwItemId === id) box.classList.remove('wwPosterReady');
+            };
+            box._wwPosterUrl = url;
+            image.src = url;
+        }
+
+        function bindPopcornReel(items, winnerIndex) {
+            reelItems = items || []; reelWinnerIndex = winnerIndex;
+            reelBoxes.forEach(function (box) { box._wwVirtualIndex = null; });
+            renderPopcornReel(0);
         }
 
         function renderPopcornReel(phase) {
@@ -400,6 +452,7 @@
             for (var i = 0; i < reelBoxes.length; i++) {
                 var slot = ((i - phase + REEL_BOX_COUNT * 100) % REEL_BOX_COUNT);
                 if (slot > REEL_BOX_COUNT / 2) slot -= REEL_BOX_COUNT;
+                setReelCandidate(reelBoxes[i], Math.round(phase + slot));
                 var emphasis = Math.max(0, 1 - Math.abs(slot) / 1.6);
                 var center = Math.max(0, 1 - Math.abs(slot) / POPCORN_VISUAL.centerWindow);
                 center = center * center * (3 - 2 * center);
@@ -455,7 +508,7 @@
                 state.contextChanged = true;
                 state.request++;
                 state.pool = []; state.items = []; state.history = [];
-                state.removed.clear(); cancelSpin(); wheelSound.close();
+                state.removed.clear(); cancelSpin(); bindPopcornReel([], 0); wheelSound.close();
                 hideWinner(); renderHistory(); count(); drawWheel(); syncButtons();
             }
             message('Account or server changed. Reload WatchWheel before continuing.');
@@ -1128,6 +1181,7 @@
             var request = ++state.request;
             state.loading = true;
             cancelSpin();
+            clearReelPosters();
             hideWinner(); syncButtons();
             message(state.filtersLoaded ? 'Loading your Jellyfin library...' : 'Loading filters...');
             try {
@@ -1384,7 +1438,7 @@
                 }, true);
             });
             page.addEventListener('viewshow', ensureContext);
-            page.addEventListener('viewhide', function () { cancelSpin(); wheelSound.close(); });
+            page.addEventListener('viewhide', function () { cancelSpin(); clearReelPosters(); wheelSound.close(); });
             if (typeof document.addEventListener === 'function') {
                 document.addEventListener('visibilitychange', function onVisibilityChange() {
                     if (document.hidden) {
@@ -1410,10 +1464,13 @@
                 applyAppearance(true); savePreferences();
             });
             byId('wwSkin').addEventListener('change', function () {
-                if (state.spinning) { cancelSpin(); hideWinner(); }
+                var wasSpinning = state.spinning;
+                cancelSpin();
+                if (wasSpinning) hideWinner();
                 byId('pcwinnerCard').classList.remove('wwPopcornWinner');
                 wheelSound.stop();
                 activeSkin = byId('wwSkin').value === 'popcorn' ? 'popcorn' : 'classic';
+                if (activeSkin === 'classic') clearReelPosters();
                 if (state.winner) showWinner(state.winner);
                 applyAppearance(true); savePreferences();
             });
