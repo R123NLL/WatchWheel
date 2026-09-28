@@ -9,12 +9,12 @@
         "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
         "versions":  [
                          {
-                             "version":  "1.1.0.1",
-                             "changelog":  "TEST BUILD: persistent Popcorn rarity auras, upward bottom selector, and subtle neighboring-bucket lift.",
+                             "version":  "1.1.0.2",
+                             "changelog":  "TEST BUILD: stronger persistent Popcorn rarity auras with clearer halo, rim light, underglow, and center-crossing emphasis.",
                              "targetAbi":  "10.11.11.0",
-                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.1.0.1-test/WatchWheel-1.1.0.1.zip",
-                             "checksum":  "53c6f0465536b3fee0922c76e516012e",
-                             "timestamp":  "2026-09-28T10:09:02Z"
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.1.0.2-test/WatchWheel-1.1.0.2.zip",
+                             "checksum":  "3deb1afdec2aa953c9d2b1903e2cca0e",
+                             "timestamp":  "2026-09-28T11:16:04Z"
                          }
                      ]
     }
