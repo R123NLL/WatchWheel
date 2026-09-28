@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -13,7 +13,7 @@
     <div data-role="content">
         <div class="content-primary watchWheelShell">
             <div class="watchWheelHeader">
-                <div><h1><span class="cinemaMark" aria-hidden="true">â—‰</span> WatchWheel</h1></div>
+                <div><h1><span class="cinemaMark" aria-hidden="true">◉</span> WatchWheel</h1></div>
                 <button id="wwSettingsButton" type="button" class="raised emby-button wwSettingsButton" aria-expanded="false" aria-controls="wwSettingsPanel">Settings</button>
                 <div class="candidateBadge"><span id="candidateCount">0</span><span>choices</span></div>
             </div>
@@ -178,7 +178,7 @@
                 </div>
             </section>
             <aside class="cinemaSidebar" aria-label="Your pick and titles">
-            <div id="wwWinnerEmpty" class="cinemaEmpty"><span aria-hidden="true">âœ¦</span><h2>Your next movie night</h2><p>Spin to find your next watch.</p></div>
+            <div id="wwWinnerEmpty" class="cinemaEmpty"><span aria-hidden="true">✦</span><h2>Your next movie night</h2><p>Spin to find your next watch.</p></div>
             <section id="winnerCard" class="winnerCard hidden" aria-labelledby="winnerTitle">
                 <div id="wwPosterOrigin" class="winnerPosterWrapper">
                     <span id="winnerPosterFallback" class="winnerPosterFallback" aria-hidden="true"></span>
@@ -261,7 +261,7 @@
     <script>
         (function () {
             var page = document.getElementById('WatchWheelPage');
-            var version = 'watchwheel-1.0.2.16-test';
+            var version = 'watchwheel-1.1.0.1-test';
             var cssId = 'watchWheelPluginCss';
             var css = document.getElementById(cssId);
             if (!css) {
