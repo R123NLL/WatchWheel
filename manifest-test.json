@@ -9,12 +9,12 @@
         "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
         "versions":  [
                          {
-                             "version":  "1.1.0.2",
-                             "changelog":  "TEST BUILD: stronger persistent Popcorn rarity auras with clearer halo, rim light, underglow, and center-crossing emphasis.",
+                             "version":  "1.1.0.3",
+                             "changelog":  "TEST BUILD: real candidate posters inside Popcorn buckets, full winner bag-pop reveal, and secondary non-winner poster reveals.",
                              "targetAbi":  "10.11.11.0",
-                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.1.0.2-test/WatchWheel-1.1.0.2.zip",
-                             "checksum":  "3deb1afdec2aa953c9d2b1903e2cca0e",
-                             "timestamp":  "2026-09-28T11:16:04Z"
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.1.0.3-test/WatchWheel-1.1.0.3.zip",
+                             "checksum":  "3e8eedd182fa5119f833cd802777ab30",
+                             "timestamp":  "2026-09-28T13:41:41Z"
                          }
                      ]
     }
