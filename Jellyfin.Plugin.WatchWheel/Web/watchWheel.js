@@ -466,6 +466,15 @@
             }
         }
 
+        function resetLoserPosters() {
+            byId('wwPopcornStage').classList.remove('wwLosersRevealed');
+            reelBoxes.forEach(function (box) {
+                box.classList.remove('wwVisibleLoser');
+                box.style.setProperty('--ww-loser-rise', '0%');
+                box.style.setProperty('--ww-loser-delay', '0ms');
+            });
+        }
+
         function cancelSpin() {
             state.spinToken++;
             if (popcornFrame !== null) cancelAnimationFrame(popcornFrame);
@@ -473,6 +482,7 @@
             byId('wwPopcornStage').classList.remove('wwRevealing');
             byId('wwPopcornStage').classList.remove('wwSettling');
             byId('wwPopcornStage').classList.remove('wwWon');
+            resetLoserPosters();
             byId('pcwinnerCard').classList.remove('wwPopcornWinner');
             byId('pcwinnerCard').classList.remove('wwPopcornPreparing');
             page.classList.remove('wwPopcornRunning');
@@ -939,6 +949,7 @@
             byId('wwPopcornStage').classList.remove('wwRevealing');
             byId('wwPopcornStage').classList.remove('wwSettling');
             byId('wwPopcornStage').classList.remove('wwWon');
+            resetLoserPosters();
             byId('pcwinnerCard').classList.remove('wwPopcornWinner');
             byId('pcwinnerCard').classList.remove('wwPopcornPreparing');
             canvas.classList.remove('cinemaWinner');
@@ -1298,7 +1309,7 @@
             var started = performance.now();
             var stage = byId('wwPopcornStage');
             var card = byId('pcwinnerCard'), poster = byId('pcwwPosterOrigin');
-            var lastSlot = 0, lastTickAt = -1000, locked = false, revealed = false;
+            var lastSlot = 0, lastTickAt = -1000, locked = false, revealed = false, losersRevealed = false;
             var revealSoundPlayed = false, revealStarted = 0;
             // Populate and lay out once before movement. The same poster is used throughout;
             // no display swap or image assignment happens at the burst.
@@ -1314,6 +1325,8 @@
             renderPopcornReel(0);
             var stageRect = stage.getBoundingClientRect(), posterRect = poster.getBoundingClientRect();
             var bucketRect = reelBoxes[0].getBoundingClientRect();
+            var reelWidth = stage.clientWidth || stageRect.width;
+            var bucketWidth = reelBoxes[0].offsetWidth || reelBoxes[0].clientWidth || bucketRect.width / 1.32;
             var mouth = stageRect.bottom - 18 - bucketRect.height * .72;
             card.style.setProperty('--ww-origin-x', (stageRect.left + stageRect.width / 2 - posterRect.left - posterRect.width / 2) + 'px');
             card.style.setProperty('--ww-origin-y', (mouth - posterRect.top - posterRect.height * .12) + 'px');
@@ -1348,6 +1361,16 @@
                         var centerBox = POPCORN_VISUAL.target % REEL_BOX_COUNT;
                         reelBoxes.forEach(function (box, index) {
                             if (Math.abs(index - centerBox) <= 2 && index !== centerBox) box.classList.add('wwNearbyLoser');
+                            if (index === centerBox) return;
+                            var slot = ((index - POPCORN_VISUAL.target + REEL_BOX_COUNT * 100) % REEL_BOX_COUNT);
+                            if (slot > REEL_BOX_COUNT / 2) slot -= REEL_BOX_COUNT;
+                            var distance = Math.abs(slot);
+                            var x = reelWidth / 2 + slot * reelStep;
+                            var halfWidth = bucketWidth * (1 + Math.max(0, 1 - distance / 1.6) * .32) / 2;
+                            if (x + halfWidth <= 0 || x - halfWidth >= reelWidth) return;
+                            box.classList.add('wwVisibleLoser');
+                            box.style.setProperty('--ww-loser-rise', '-' + Math.max(30, 55 - (distance - 1) * 5) + '%');
+                            box.style.setProperty('--ww-loser-delay', Math.min(160, (distance - 1) * 40) + 'ms');
                         });
                         wheelSound.popcornSettle();
                         stage.classList.add('wwSettling');
@@ -1368,6 +1391,10 @@
                 if (revealed && !revealSoundPlayed && now - revealStarted >= POPCORN_TIMING.revealSoundDelay) {
                     revealSoundPlayed = true;
                     wheelSound.popcornWin();
+                }
+                if (revealed && !losersRevealed && now - revealStarted >= 200) {
+                    losersRevealed = true;
+                    stage.classList.add('wwLosersRevealed');
                 }
                 if (revealed && now - revealStarted >= revealDuration) { finish(); return; }
                 popcornFrame = requestAnimationFrame(animate);

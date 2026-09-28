@@ -869,13 +869,13 @@
 }
 #WatchWheelPage[data-skin="popcorn"] .wwReelPoster {
     position: absolute; z-index: 2; left: 18%; bottom: 28%; width: 64%; height: 96%;
-    box-sizing: border-box; overflow: hidden; pointer-events: none;
+    box-sizing: border-box; overflow: hidden; pointer-events: none; opacity: 0;
     border: 1px solid rgba(255,226,177,.7); border-radius: 5px 5px 2px 2px;
     background: linear-gradient(160deg,#293042,#10131b 75%);
     box-shadow: 0 0 7px rgba(0,0,0,.72);
     translate: 0 var(--ww-neighbor-y, 0px);
-    transform: translateY(var(--ww-poster-rise, 0%));
-    transition: translate 220ms ease-out, transform 560ms cubic-bezier(.2,.7,.2,1);
+    transform: translateY(var(--ww-poster-rise, 30%));
+    transition: translate 220ms ease-out, transform 720ms cubic-bezier(.2,.7,.2,1), opacity 200ms ease-out;
 }
 #WatchWheelPage[data-skin="popcorn"] .wwReelPoster img {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
@@ -921,10 +921,10 @@
 #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox:not(.wwSelectedBucket) { opacity: .25; }
 #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornBox.wwNearbyLoser,
 #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox.wwNearbyLoser { --ww-neighbor-y: -8px; opacity: .4; }
-#WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox:not(.wwSelectedBucket) .wwReelPoster {
-    --ww-poster-rise: -35%; transition-delay: 0ms, 140ms;
+#WatchWheelPage[data-skin="popcorn"] .wwLosersRevealed .wwPopcornBox.wwVisibleLoser .wwReelPoster {
+    --ww-poster-rise: var(--ww-loser-rise); opacity: 1;
+    transition-delay: 0ms, var(--ww-loser-delay), var(--ww-loser-delay);
 }
-#WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox.wwNearbyLoser .wwReelPoster { --ww-poster-rise: -55%; }
 #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwSelectedBucket,
 #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwSelectedBucket { filter: none; }
 #WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket[data-rarity="gold"] .wwRaritySpark {

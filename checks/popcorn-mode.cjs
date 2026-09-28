@@ -33,7 +33,9 @@ const nextFrame = async (e, now) => {
     assert.match(css, /\.wwSelectedBucket \.wwRarityHalo\s*\{\s*opacity:\s*var\(--ww-halo-lock\)/, 'winner gets the strongest rarity treatment');
     assert.match(css, /\.wwPopcornBucketArt\s*\{\s*position:\s*absolute;\s*z-index:\s*3;/, 'existing bucket art remains in front of its poster');
     assert.match(css, /\.wwReelPoster\s*\{\s*position:\s*absolute;\s*z-index:\s*2;/, 'reel poster stays inside the bucket presentation');
-    assert.match(css, /\.wwWon \.wwPopcornBox\.wwNearbyLoser \.wwReelPoster\s*\{\s*--ww-poster-rise:\s*-55%;/, 'nearby losers receive the moderate poster rise');
+    assert.match(css, /\.wwReelPoster\s*\{[^}]*opacity:\s*0;/s, 'all reel posters stay hidden through spin and anticipation');
+    assert.match(css, /\.wwLosersRevealed \.wwPopcornBox\.wwVisibleLoser \.wwReelPoster\s*\{[^}]*opacity:\s*1;/s, 'only visible losers can expose their posters after the delayed reveal');
+    assert.doesNotMatch(css, /\.wwWon \.wwPopcornBox[^}]*\.wwReelPoster\s*\{/, 'winner state alone cannot reveal loser posters');
     assert.match(js, /var winner = state\.items\[index\]/);
     const art = ['cinematic_popcorn_reveal_stage.png', 'popcorn-vector.svg', 'popcorn-kernel.svg'];
     const classicArt = 'classic-atmosphere.svg';
@@ -117,7 +119,9 @@ const nextFrame = async (e, now) => {
             assert(e.els.pcwinnerCard.classes.has('wwPopcornPreparing'), 'prepared winner remains invisible');
             assert(e.els.wwSpin.disabled, 'reduced motion still has anticipation');
             await nextFrame(e, 150);
+            assert(!e.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'reduced motion reveals the winner first');
             await nextFrame(e, 510);
+            assert(e.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'reduced-motion losers reveal after the winner');
             assert(!e.els.pcwinnerCard.classes.has('hidden'));
             assert(e.els.winnerCard.classes.has('hidden'),'Classic card stays hidden');
             assert.equal(e.els.pcwinnerTitle.textContent.startsWith('Movie '), true);
@@ -141,9 +145,11 @@ const nextFrame = async (e, now) => {
     assert.equal(imageUrls.length, 15, 'only initial visible/near-visible thumbnails are requested');
     const image = richBoxes[0].children[1].children[1];
     assert.equal(richBoxes[0].children[1].children[0].textContent, '✦', 'neutral fallback exists inside every bucket');
-    image.onload(); assert(richBoxes[0].classes.has('wwPosterReady'), 'loaded thumbnail becomes visible');
+    image.onload(); assert(richBoxes[0].classes.has('wwPosterReady'), 'thumbnail may load while its sleeve remains hidden');
     image.onerror(); assert(!richBoxes[0].classes.has('wwPosterReady'), 'missing artwork returns to neutral fallback');
     const candidateRequests = rich.requests.filter(x => x.includes('/Items')).length;
+    rich.els.wwPopcornStage.clientWidth = 1480;
+    richBoxes.forEach(box => { box.clientWidth = 108; });
     await rich.fire('wwSpin');
     const winnerId = `title-${rich.els.pcwinnerTitle.textContent.split(' ').at(-1)}`;
     const seen = new Set();
@@ -156,13 +162,22 @@ const nextFrame = async (e, now) => {
             staleImageId = richBoxes[0].attrs['data-item-id'];
         }
         if (time === 3000) {
+            assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'posters stay hidden in normal travel');
             assert.notEqual(richBoxes[0].attrs['data-item-id'], staleImageId, 'offscreen slot is recycled to another real candidate');
             staleImageLoad();
             assert(!richBoxes[0].classes.has('wwPosterReady'), 'late load cannot display a recycled candidate poster');
         }
+        if (time === 3900) assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'posters stay hidden in final deceleration');
     }
     assert(seen.size > 15, 'recycled slots show more real candidates than the DOM count');
     assert.equal(richBoxes[9].attrs['data-item-id'], winnerId, 'final center bucket is the full-pool selected winner');
+    assert.equal(richBoxes.filter(box => box.classes.has('wwVisibleLoser')).length, 12, 'all twelve on-screen non-winners are marked at lock, not just the nearest four');
+    assert(!richBoxes[9].classes.has('wwVisibleLoser'), 'winner never enters the loser reveal');
+    assert([1, 2].every(index => !richBoxes[index].classes.has('wwVisibleLoser')), 'fully offscreen buckets are excluded');
+    assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'anticipation keeps every candidate poster hidden');
+    assert.equal(richBoxes[8].style['--ww-loser-rise'], '-55%', 'nearest losing poster gets the largest secondary rise');
+    assert.equal(richBoxes[3].style['--ww-loser-rise'], '-30%', 'outer visible poster receives a smaller rise');
+    assert.equal(richBoxes[3].style['--ww-loser-delay'], '160ms', 'outward stagger is bounded');
     assert(richBoxes.every(box => box.attrs['data-item-id'].startsWith('title-')), 'every reel slot maps to an eligible item');
     assert.equal(rich.requests.filter(x => x.includes('/Items')).length, candidateRequests, 'spin makes no additional candidate API fetch');
     const thumbs = imageUrls.filter(entry => entry.options.maxWidth === 160);
@@ -171,15 +186,26 @@ const nextFrame = async (e, now) => {
     await nextFrame(rich, 4370);
     assert.equal(richBoxes.filter(box => box.classes.has('wwSelectedBucket')).length, 1, 'only winner bucket is selected for pop');
     assert(richBoxes[8].classes.has('wwNearbyLoser') && !richBoxes[8].classes.has('wwSelectedBucket'), 'near loser only receives secondary poster treatment');
-    await nextFrame(rich, 4490); await nextFrame(rich, 5330);
+    assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'winner bag pops before any loser poster');
+    await nextFrame(rich, 4490);
+    assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'approved winner audio still precedes the silent loser rise');
+    await nextFrame(rich, 4569);
+    assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'losers do not reveal before the 200 ms offset');
+    await nextFrame(rich, 4570);
+    assert(rich.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'visible losers begin 200 ms after winner reveal');
+    assert.equal(richBoxes.filter(box => box.classes.has('wwVisibleLoser')).length, 12, 'all visible loser posters participate');
+    await nextFrame(rich, 5330);
     assert.equal(rich.audio.filter(entry => entry.url.endsWith('winner-reveal.wav')).length, 1, 'non-winner poster rises add no reveal audio');
     await rich.fire('wwApplyFilters');
     assert(!rich.els.wwPopcornStage.classes.has('wwWon'), 'Refresh clears the prior poster reveal state');
     assert(richBoxes.every(box => !box.classes.has('wwNearbyLoser')), 'Refresh clears loser positions');
+    assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed') && richBoxes.every(box => !box.classes.has('wwVisibleLoser') && box.style['--ww-loser-rise'] === '0%'), 'Refresh lowers every loser poster');
     await rich.fire('wwSpin');
     assert(!rich.els.wwPopcornStage.classes.has('wwWon'), 'Spin Again starts with posters lowered');
+    assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed') && richBoxes.every(box => !box.classes.has('wwVisibleLoser')), 'Spin Again clears the prior loser reveal');
     rich.els.wwSkin.value = 'classic'; await rich.fire('wwSkin', 'change');
     assert(richBoxes.every(box => !box.classes.has('wwPosterReady') && !box.classes.has('wwNearbyLoser')), 'mode switch clears poster and loser state');
+    assert(!rich.els.wwPopcornStage.classes.has('wwLosersRevealed') && richBoxes.every(box => !box.classes.has('wwVisibleLoser')), 'mode switch cancels loser reveal state');
     assert(richBoxes.every(box => box.children[1].children[1].src === undefined), 'mode switch clears thumbnail sources');
 
     const prefs = {preferences: {wwGenre: 'Drama', wwWatcher: 'watcher-1', showChoices: false, soundEnabled: false}, history: []};
@@ -240,6 +266,7 @@ const nextFrame = async (e, now) => {
     assert(reveal.els.pcwinnerCard.classes.has('wwPopcornPreparing'));
     await nextFrame(reveal, 4370);
     assert(reveal.els.wwPopcornStage.classes.has('wwRevealing'));
+    assert(!reveal.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'winner hero starts first');
     assert(lockedBoxes[8].classes.has('wwNearbyLoser'), 'losers remain visible during the bag-pop reveal');
     assert(!reveal.els.pcwinnerCard.classes.has('hidden'));
     assert(!reveal.audio.some(e => e.url.endsWith('winner-reveal.wav')), 'visual reveal starts before the delayed audio');
@@ -247,7 +274,9 @@ const nextFrame = async (e, now) => {
     await nextFrame(reveal, 4489);
     assert(!reveal.audio.some(e => e.url.endsWith('winner-reveal.wav')), 'reveal cue waits for the full audio offset');
     await nextFrame(reveal, 4490);
+    assert(!reveal.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'loser posters wait through the approved sound cue');
     await nextFrame(reveal, 5329);
+    assert(reveal.els.wwPopcornStage.classes.has('wwLosersRevealed'), 'losers reveal on the existing animation clock');
     assert(reveal.els.pcwwPlay.disabled, 'Popcorn actions locked through their final fade');
     assert.equal(JSON.parse(reveal.saved[key]).history.length, historyAtBurst, 'reveal records once');
     await nextFrame(reveal, 5330);
@@ -286,6 +315,7 @@ const nextFrame = async (e, now) => {
         while(e.frames.length) await nextFrame(e,10000);
         assert(e.els.pcwinnerCard.classes.has('hidden'), 'interruption clears prepared/revealing winner at '+time);
         assert(e.els.wwPopcornReel.children.every(box => !box.classes.has('wwNearbyLoser')), 'interruption clears loser lift at '+time);
+        assert(!e.els.wwPopcornStage.classes.has('wwLosersRevealed') && e.els.wwPopcornReel.children.every(box => !box.classes.has('wwVisibleLoser') && box.style['--ww-loser-rise'] === '0%'), 'interruption cancels delayed and active loser reveals at '+time);
         if (time < 4490) assert(!e.audio.some(x=>x.url.endsWith('winner-reveal.wav')), 'interrupted spin cannot fire delayed reveal at '+time);
         assert(!e.page.classList.contains('wwPopcornRunning'));
         assert(!e.els.wwSpin.disabled);
