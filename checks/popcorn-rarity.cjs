@@ -25,6 +25,31 @@ for (const [rating, expected] of cases) {
     assert.equal(helper.tier(rating), expected, `rating ${String(rating)} is ${expected}`);
 }
 
+const colors = {blue: '36,156,255', purple: '145,71,255', red: '227,38,54', gold: '255,185,31'};
+const tiers = Object.keys(colors).map(tier => {
+    const block = css.match(new RegExp(`#WatchWheelPage \\[data-rarity="${tier}"\\] \\{([^}]*)\\}`));
+    assert(block, `${tier} retains its rarity style`);
+    const value = name => {
+        const match = block[1].match(new RegExp(`--ww-${name}: ([\\d.]+)`));
+        assert(match, `${tier} has ${name}`);
+        return Number(match[1]);
+    };
+    assert(block[1].includes(`--ww-rarity-rgb: ${colors[tier]}`), `${tier} keeps its approved color`);
+    return {tier, halo: value('halo-idle'), haloLock: value('halo-lock'),
+        under: value('under-idle'), underLock: value('under-lock'), rim: value('rim-alpha')};
+});
+const crossingBoost = Number(js.match(/--ww-cross-alpha', \(center \* ([\d.]+)\)/)[1]);
+assert.match(js, /\[\['0%', '\.88'\], \['48%', '\.42'\], \['100%', '0'\]\]/, 'existing back-halo gradient is brighter');
+for (let i = 0; i < tiers.length; i++) {
+    const tier = tiers[i];
+    assert(tier.halo >= .4 && tier.under >= .42 && tier.rim >= .55, `${tier.tier} remains visible in normal travel`);
+    assert(tier.halo + crossingBoost < tier.haloLock, `${tier.tier} halo progresses from travel through crossing to lock`);
+    assert(tier.under + crossingBoost < tier.underLock, `${tier.tier} floor glow progresses from travel through crossing to lock`);
+    if (i) for (const layer of ['halo', 'under', 'rim']) {
+        assert(tier[layer] > tiers[i - 1][layer], `${tier.tier} ${layer} stands above the prior tier`);
+    }
+}
+
 (async () => {
     const items = [
         {Id: 'gold', Name: 'Gold', Type: 'Movie', CommunityRating: 8.5},

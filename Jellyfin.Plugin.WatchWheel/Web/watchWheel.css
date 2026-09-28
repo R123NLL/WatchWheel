@@ -837,20 +837,20 @@
 
 /* Web reference values: soft backlight, reflected rim and grounded underglow. */
 #WatchWheelPage [data-rarity="blue"] {
-    --ww-rarity-rgb: 36,156,255; --ww-halo-idle: .22; --ww-halo-lock: .56; --ww-halo-scale: .84;
-    --ww-under-idle: .28; --ww-under-lock: .58; --ww-under-scale: .84; --ww-rim-alpha: .3;
+    --ww-rarity-rgb: 36,156,255; --ww-halo-idle: .4; --ww-halo-lock: .8; --ww-halo-scale: .84;
+    --ww-under-idle: .42; --ww-under-lock: .81; --ww-under-scale: .84; --ww-rim-alpha: .55;
 }
 #WatchWheelPage [data-rarity="purple"] {
-    --ww-rarity-rgb: 145,71,255; --ww-halo-idle: .28; --ww-halo-lock: .68; --ww-halo-scale: .9;
-    --ww-under-idle: .36; --ww-under-lock: .7; --ww-under-scale: .91; --ww-rim-alpha: .38;
+    --ww-rarity-rgb: 145,71,255; --ww-halo-idle: .47; --ww-halo-lock: .87; --ww-halo-scale: .9;
+    --ww-under-idle: .49; --ww-under-lock: .88; --ww-under-scale: .91; --ww-rim-alpha: .64;
 }
 #WatchWheelPage [data-rarity="red"] {
-    --ww-rarity-rgb: 227,38,54; --ww-halo-idle: .34; --ww-halo-lock: .8; --ww-halo-scale: .96;
-    --ww-under-idle: .44; --ww-under-lock: .82; --ww-under-scale: .98; --ww-rim-alpha: .48;
+    --ww-rarity-rgb: 227,38,54; --ww-halo-idle: .54; --ww-halo-lock: .94; --ww-halo-scale: .96;
+    --ww-under-idle: .56; --ww-under-lock: .95; --ww-under-scale: .98; --ww-rim-alpha: .73;
 }
 #WatchWheelPage [data-rarity="gold"] {
-    --ww-rarity-rgb: 255,185,31; --ww-halo-idle: .42; --ww-halo-lock: .94; --ww-halo-scale: 1;
-    --ww-under-idle: .52; --ww-under-lock: .95; --ww-under-scale: 1.08; --ww-rim-alpha: .58;
+    --ww-rarity-rgb: 255,185,31; --ww-halo-idle: .61; --ww-halo-lock: 1; --ww-halo-scale: 1;
+    --ww-under-idle: .63; --ww-under-lock: 1; --ww-under-scale: 1.08; --ww-rim-alpha: .83;
 }
 
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornBox {
@@ -864,7 +864,7 @@
     transform: scale(var(--ww-cross-scale)); transform-origin: 50% 76%;
     translate: 0 var(--ww-neighbor-y, 0px);
     transition: transform 70ms ease-out, translate 220ms ease-out;
-    filter: drop-shadow(0 0 6px rgba(var(--ww-rarity-rgb),var(--ww-rim-alpha)))
+    filter: drop-shadow(0 0 9px rgba(var(--ww-rarity-rgb),var(--ww-rim-alpha)))
         drop-shadow(0 14px 10px rgba(0,0,0,.72));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwRarityAura {
@@ -880,9 +880,9 @@
     transform-box: fill-box; transform-origin: center; transition: opacity 70ms ease-out,transform 80ms ease-out;
 }
 #WatchWheelPage .wwRarityBaseGlow {
-    fill: rgba(var(--ww-rarity-rgb),.82); opacity: calc(var(--ww-under-idle) + var(--ww-cross-alpha));
+    fill: rgba(var(--ww-rarity-rgb),.96); opacity: calc(var(--ww-under-idle) + var(--ww-cross-alpha));
     transform: scaleX(calc(var(--ww-under-scale) + var(--ww-under-cross)));
-    transform-box: fill-box; transform-origin: center; filter: blur(4px);
+    transform-box: fill-box; transform-origin: center; filter: blur(3px);
     transition: opacity 70ms ease-out,transform 80ms ease-out;
 }
 #WatchWheelPage .wwRaritySpark {
@@ -894,8 +894,8 @@
     opacity: var(--ww-under-lock); transform: scaleX(calc(var(--ww-under-scale) + .12));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket .wwPopcornBucketArt {
-    filter: drop-shadow(0 0 4px rgba(var(--ww-rarity-rgb),.74))
-        drop-shadow(0 10px 10px rgba(var(--ww-rarity-rgb),.28)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
+    filter: drop-shadow(0 0 6px rgba(var(--ww-rarity-rgb),.95))
+        drop-shadow(0 10px 12px rgba(var(--ww-rarity-rgb),.46)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornBox:not(.wwSelectedBucket),
 #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox:not(.wwSelectedBucket) { opacity: .25; }

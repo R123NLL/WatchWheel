@@ -343,7 +343,7 @@
                 var gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
                 var gradientId = 'wwRarityGradient-' + i;
                 gradient.setAttribute('id', gradientId);
-                [['0%', '.58'], ['48%', '.25'], ['100%', '0']].forEach(function (entry) {
+                [['0%', '.88'], ['48%', '.42'], ['100%', '0']].forEach(function (entry) {
                     var stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
                     stop.setAttribute('offset', entry[0]); stop.setAttribute('stop-opacity', entry[1]);
                     stop.setAttribute('class', 'wwRarityStop'); gradient.appendChild(stop);
@@ -407,7 +407,7 @@
                     + 'px),0,0) scale(' + (1 + emphasis * .32).toFixed(3) + ')';
                 reelBoxes[i].style.zIndex = String(Math.round(emphasis * 5));
                 reelBoxes[i].style.setProperty('--ww-center', center.toFixed(3));
-                reelBoxes[i].style.setProperty('--ww-cross-alpha', (center * .28).toFixed(3));
+                reelBoxes[i].style.setProperty('--ww-cross-alpha', (center * .34).toFixed(3));
                 reelBoxes[i].style.setProperty('--ww-cross-scale', (1 + center * .025).toFixed(3));
                 reelBoxes[i].style.setProperty('--ww-under-cross', (center * .1).toFixed(3));
             }
