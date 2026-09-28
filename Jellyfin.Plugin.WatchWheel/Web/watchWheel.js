@@ -327,7 +327,8 @@
         var canvas = byId('watchWheelCanvas');
         var context = canvas.getContext('2d');
         var wheelSound = createWheelSound(), soundEnabled = true, showChoices = true, activeSkin = 'classic';
-        var reelBoxes = [], REEL_BOX_COUNT = 15, popcornFrame = null, reelStep = 112, reelPhase = 0;
+        var reelBoxes = [], reelContent = [], reelItems = [], reelAnchorIndex = 0, reelAnchorPhase = 0;
+        var REEL_BOX_COUNT = 15, popcornFrame = null, reelStep = 112, reelPhase = 0;
         function createPopcornReel() {
             var reel = byId('wwPopcornReel');
             for (var i = 0; i < REEL_BOX_COUNT; i++) {
@@ -368,7 +369,22 @@
                 var art = document.createElement('div');
                 art.className = 'wwPopcornBucketArt';
                 art.setAttribute('aria-hidden', 'true');
-                box.appendChild(aura); box.appendChild(art); reel.appendChild(box); reelBoxes.push(box);
+                var visual = document.createElement('div');
+                visual.className = 'wwReelVisual';
+                var candidate = document.createElement('div');
+                candidate.className = 'wwReelCandidate';
+                var fallback = document.createElement('span');
+                fallback.className = 'wwReelPosterFallback';
+                var poster = document.createElement('img');
+                poster.className = 'wwReelPoster';
+                poster.alt = '';
+                poster.decoding = 'async';
+                var title = document.createElement('span');
+                title.className = 'wwReelTitle';
+                candidate.appendChild(fallback); candidate.appendChild(poster); candidate.appendChild(title);
+                visual.appendChild(art); visual.appendChild(candidate);
+                box.appendChild(aura); box.appendChild(visual); reel.appendChild(box); reelBoxes.push(box);
+                reelContent.push({ poster: poster, title: title, fallback: fallback, logical: null, imageId: null });
             }
             for (var kernel = 0; kernel < 22; kernel++) {
                 var particle = document.createElement('span');
@@ -384,22 +400,48 @@
             renderPopcornReel(0);
         }
 
-        function bindPopcornReel(items, winnerIndex) {
-            var selected = POPCORN_VISUAL.target % REEL_BOX_COUNT;
-            var length = items && items.length ? items.length : 0;
-            for (var i = 0; i < reelBoxes.length; i++) {
-                var item = length
-                    ? items[((winnerIndex + i - selected) % length + length) % length]
-                    : null;
-                reelBoxes[i].setAttribute('data-rarity', getPopcornRarityTier(item && value(item, 'CommunityRating')));
-            }
+        function bindPopcornReel(items, anchorIndex, anchorPhase, phase) {
+            reelItems = items || [];
+            reelAnchorIndex = anchorIndex;
+            reelAnchorPhase = anchorPhase || 0;
+            reelContent.forEach(function (content) { content.logical = null; });
+            renderPopcornReel(phase == null ? reelPhase : phase);
         }
 
         function renderPopcornReel(phase) {
             reelPhase = phase;
+            var visibleRadius = Math.min(7, (byId('wwPopcornStage').clientWidth || 900) / (2 * reelStep) + 1);
             for (var i = 0; i < reelBoxes.length; i++) {
                 var slot = ((i - phase + REEL_BOX_COUNT * 100) % REEL_BOX_COUNT);
                 if (slot > REEL_BOX_COUNT / 2) slot -= REEL_BOX_COUNT;
+                var logical = Math.round(phase + slot);
+                var content = reelContent[i];
+                if (content.logical !== logical) {
+                    content.logical = logical;
+                    var length = reelItems.length;
+                    var item = length ? reelItems[((reelAnchorIndex + logical - reelAnchorPhase) % length + length) % length] : null;
+                    content.item = item;
+                    reelBoxes[i].classList.toggle('wwReelEmpty', !item);
+                    reelBoxes[i].setAttribute('data-item-id', item ? idOf(item) : '');
+                    reelBoxes[i].setAttribute('data-rarity', getPopcornRarityTier(item && value(item, 'CommunityRating')));
+                    content.title.textContent = item ? nameOf(item) : '';
+                    content.fallback.textContent = item ? (isSeries(item) ? 'TV' : 'MOVIE') : '';
+                    if (!item) {
+                        content.poster.removeAttribute('src');
+                        content.poster.style.display = 'none';
+                        content.imageId = null;
+                    }
+                }
+                // Only request thumbnails as their reusable slots approach the visible stage.
+                if (activeSkin === 'popcorn' && content.item && Math.abs(slot) <= visibleRadius) {
+                    var imageId = idOf(content.item);
+                    if (content.imageId !== imageId) {
+                        content.imageId = imageId;
+                        content.poster.style.display = 'block';
+                        content.poster.onerror = function () { this.style.display = 'none'; };
+                        content.poster.src = posterUrl(imageId, true);
+                    }
+                }
                 var emphasis = Math.max(0, 1 - Math.abs(slot) / 1.6);
                 var center = Math.max(0, 1 - Math.abs(slot) / POPCORN_VISUAL.centerWindow);
                 center = center * center * (3 - 2 * center);
@@ -424,7 +466,7 @@
             byId('pcwinnerCard').classList.remove('wwPopcornPreparing');
             page.classList.remove('wwPopcornRunning');
             byId('wwPopcornStage').setAttribute('data-motion', 'idle');
-            reelBoxes.forEach(function (box) { box.classList.remove('wwSelectedBucket'); });
+            reelBoxes.forEach(function (box) { box.classList.remove('wwSelectedBucket'); box.classList.remove('wwNeighbor'); });
             if (state.spinning) {
                 state.spinning = false;
                 wheelSound.stop();
@@ -897,11 +939,12 @@
             byId('pcwwWinnerEmpty').classList.remove('hidden');
         }
 
-        function posterUrl(id) {
+        function posterUrl(id, thumbnail) {
             if (typeof window.ApiClient.getImageUrl === 'function') {
-                return window.ApiClient.getImageUrl(id, { type: 'Primary', maxWidth: 500, quality: 90 });
+                return window.ApiClient.getImageUrl(id, { type: 'Primary', maxWidth: thumbnail ? 160 : 500, quality: thumbnail ? 65 : 90 });
             }
-            return window.ApiClient.getUrl('Items/' + encodeURIComponent(id) + '/Images/Primary');
+            return window.ApiClient.getUrl('Items/' + encodeURIComponent(id) + '/Images/Primary'
+                + (thumbnail ? '?maxWidth=160&quality=65' : ''));
         }
 
         function showWinner(item) {
@@ -1250,10 +1293,9 @@
             card.classList.remove('wwPopcornWinner');
             page.classList.add('wwPopcornRunning');
             showWinner(winner);
-            bindPopcornReel(state.items, winnerIndex);
             reelStep = Math.max(78, Math.min(132, (stage.clientWidth || 900) / 8));
-            reelBoxes.forEach(function (box) { box.classList.remove('wwSelectedBucket'); });
-            renderPopcornReel(0);
+            reelBoxes.forEach(function (box) { box.classList.remove('wwSelectedBucket'); box.classList.remove('wwNeighbor'); });
+            bindPopcornReel(state.items, winnerIndex, POPCORN_VISUAL.target, 0);
             var stageRect = stage.getBoundingClientRect(), posterRect = poster.getBoundingClientRect();
             var bucketRect = reelBoxes[0].getBoundingClientRect();
             var mouth = stageRect.bottom - 18 - bucketRect.height * .72;
@@ -1287,6 +1329,11 @@
                     if (elapsed >= lockAt) {
                         locked = true;
                         renderPopcornReel(POPCORN_VISUAL.target);
+                        [-2, -1, 1, 2].forEach(function (offset) {
+                            var neighbor = reelBoxes[(POPCORN_VISUAL.target + offset + REEL_BOX_COUNT) % REEL_BOX_COUNT];
+                            neighbor.classList.add('wwNeighbor');
+                            neighbor.style.setProperty('--ww-neighbor-lift', Math.abs(offset) === 1 ? '-8px' : '-5px');
+                        });
                         wheelSound.popcornSettle();
                         stage.classList.add('wwSettling');
                         stage.setAttribute('data-motion', 'anticipation');
