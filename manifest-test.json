@@ -9,12 +9,12 @@
         "imageUrl":  "https://raw.githubusercontent.com/R123NLL/WatchWheel/main/assets/watchwheel-banner.png",
         "versions":  [
                          {
-                             "version":  "1.1.0.3",
-                             "changelog":  "TEST BUILD: real candidate posters inside Popcorn buckets, full winner bag-pop reveal, and secondary non-winner poster reveals.",
+                             "version":  "1.1.0.4",
+                             "changelog":  "TEST BUILD: winner reveals first, followed by gentle staggered poster reveals for all visible losing Popcorn buckets.",
                              "targetAbi":  "10.11.11.0",
-                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.1.0.3-test/WatchWheel-1.1.0.3.zip",
-                             "checksum":  "3e8eedd182fa5119f833cd802777ab30",
-                             "timestamp":  "2026-09-28T13:41:41Z"
+                             "sourceUrl":  "https://github.com/R123NLL/WatchWheel/releases/download/v1.1.0.4-test/WatchWheel-1.1.0.4.zip",
+                             "checksum":  "b746206bc45de21a9b3517ac22825195",
+                             "timestamp":  "2026-09-28T15:36:50Z"
                          }
                      ]
     }
