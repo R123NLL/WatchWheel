@@ -703,7 +703,7 @@
 #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwPopcornHero {
     animation: pcBucketGrow 240ms cubic-bezier(.16,.7,.2,1) both;
 }
-#WatchWheelPage .pcMarker { position: absolute; left: 50%; bottom: -12px; width: 110px; height: 147px; transform: translateX(-50%); z-index: 10; pointer-events: none; }
+#WatchWheelPage .pcMarker { position: absolute; left: 50%; bottom: -17px; width: 36px; height: 34px; transform: translateX(-50%); z-index: 10; pointer-events: none; filter: drop-shadow(0 0 5px #ffca76); transition: opacity 180ms ease-out; }
 #WatchWheelPage .pcBucket .pcLeftLid { transform-origin: 49px 149px; }
 #WatchWheelPage .pcBucket .pcRightLid { transform-origin: 251px 149px; }
 #WatchWheelPage .pcBucket .pcRays { opacity: .22; transform-origin: 150px 150px; }
@@ -862,14 +862,16 @@
     position: absolute; z-index: 2; inset: 0;
     background: url("../WatchWheel/Assets/popcorn-vector.svg") center bottom / contain no-repeat;
     transform: scale(var(--ww-cross-scale)); transform-origin: 50% 76%;
-    transition: transform 70ms ease-out;
-    filter: drop-shadow(0 0 2px rgba(var(--ww-rarity-rgb),var(--ww-rim-alpha)))
+    translate: 0 var(--ww-neighbor-y, 0px);
+    transition: transform 70ms ease-out, translate 220ms ease-out;
+    filter: drop-shadow(0 0 6px rgba(var(--ww-rarity-rgb),var(--ww-rim-alpha)))
         drop-shadow(0 14px 10px rgba(0,0,0,.72));
 }
 #WatchWheelPage[data-skin="popcorn"] .wwRarityAura {
     position: absolute; z-index: 1; pointer-events: none;
     left: -9%; top: -7%; width: 118%; height: 114%; overflow: visible;
     transform-origin: 50% 76%; filter: none;
+    translate: 0 var(--ww-neighbor-y, 0px); transition: translate 220ms ease-out;
 }
 #WatchWheelPage .wwRarityStop { stop-color: rgb(var(--ww-rarity-rgb)); }
 #WatchWheelPage .wwRarityHalo {
@@ -895,6 +897,10 @@
     filter: drop-shadow(0 0 4px rgba(var(--ww-rarity-rgb),.74))
         drop-shadow(0 10px 10px rgba(var(--ww-rarity-rgb),.28)) drop-shadow(0 17px 15px rgba(0,0,0,.8));
 }
+#WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornBox:not(.wwSelectedBucket),
+#WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox:not(.wwSelectedBucket) { opacity: .25; }
+#WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornBox.wwNearbyLoser,
+#WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox.wwNearbyLoser { --ww-neighbor-y: -8px; opacity: .4; }
 #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwSelectedBucket,
 #WatchWheelPage[data-skin="popcorn"] .wwRevealing .wwSelectedBucket { filter: none; }
 #WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket[data-rarity="gold"] .wwRaritySpark {
@@ -903,9 +909,11 @@
 #WatchWheelPage[data-skin="popcorn"] .wwPopcornStage[data-rarity] .wwPopcornParticle {
     filter: drop-shadow(0 0 7px rgba(var(--ww-rarity-rgb),.8));
 }
-#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage[data-rarity] .pcMarker {
-    filter: drop-shadow(0 0 10px rgba(var(--ww-rarity-rgb),.85));
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage[data-rarity].wwSettling .pcMarker,
+#WatchWheelPage[data-skin="popcorn"] .wwPopcornStage[data-rarity].wwWon .pcMarker {
+    filter: drop-shadow(0 0 7px rgba(var(--ww-rarity-rgb),.6));
 }
+#WatchWheelPage[data-skin="popcorn"] .wwWon .pcMarker { opacity: .4; }
 #WatchWheelPage .pcWinnerScene[data-rarity] .pcPoster {
     box-shadow: 0 0 0 2px rgba(var(--ww-rarity-rgb),.86),
         0 0 34px rgba(var(--ww-rarity-rgb),.5),0 18px 36px #0009;
@@ -933,6 +941,9 @@
 }
 @media (prefers-reduced-motion:reduce) {
     #WatchWheelPage[data-skin="popcorn"] .wwPopcornBucketArt { transform: none; transition: none; }
+    #WatchWheelPage[data-skin="popcorn"] .wwSettling .wwPopcornBox.wwNearbyLoser,
+    #WatchWheelPage[data-skin="popcorn"] .wwWon .wwPopcornBox.wwNearbyLoser { --ww-neighbor-y: 0px; }
+    #WatchWheelPage[data-skin="popcorn"] .wwRarityAura { transition: none; }
     #WatchWheelPage[data-skin="popcorn"] .wwRarityHalo,
     #WatchWheelPage[data-skin="popcorn"] .wwRarityBaseGlow { transition: none; }
     #WatchWheelPage[data-skin="popcorn"] .wwSelectedBucket[data-rarity="gold"] .wwRaritySpark { animation: none; }

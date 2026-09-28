@@ -424,7 +424,9 @@
             byId('pcwinnerCard').classList.remove('wwPopcornPreparing');
             page.classList.remove('wwPopcornRunning');
             byId('wwPopcornStage').setAttribute('data-motion', 'idle');
-            reelBoxes.forEach(function (box) { box.classList.remove('wwSelectedBucket'); });
+            reelBoxes.forEach(function (box) {
+                box.classList.remove('wwSelectedBucket'); box.classList.remove('wwNearbyLoser');
+            });
             if (state.spinning) {
                 state.spinning = false;
                 wheelSound.stop();
@@ -1252,7 +1254,9 @@
             showWinner(winner);
             bindPopcornReel(state.items, winnerIndex);
             reelStep = Math.max(78, Math.min(132, (stage.clientWidth || 900) / 8));
-            reelBoxes.forEach(function (box) { box.classList.remove('wwSelectedBucket'); });
+            reelBoxes.forEach(function (box) {
+                box.classList.remove('wwSelectedBucket'); box.classList.remove('wwNearbyLoser');
+            });
             renderPopcornReel(0);
             var stageRect = stage.getBoundingClientRect(), posterRect = poster.getBoundingClientRect();
             var bucketRect = reelBoxes[0].getBoundingClientRect();
@@ -1287,6 +1291,10 @@
                     if (elapsed >= lockAt) {
                         locked = true;
                         renderPopcornReel(POPCORN_VISUAL.target);
+                        var centerBox = POPCORN_VISUAL.target % REEL_BOX_COUNT;
+                        reelBoxes.forEach(function (box, index) {
+                            if (Math.abs(index - centerBox) <= 2 && index !== centerBox) box.classList.add('wwNearbyLoser');
+                        });
                         wheelSound.popcornSettle();
                         stage.classList.add('wwSettling');
                         stage.setAttribute('data-motion', 'anticipation');

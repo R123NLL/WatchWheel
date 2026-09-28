@@ -24,6 +24,13 @@ const nextFrame = async (e, now) => {
 (async () => {
     assert.match(html, /<option value="classic">Classic<\/option>/);
     assert.match(html, /<option value="popcorn">Popcorn<\/option>/);
+    assert.match(html, /class="pcMarker" viewBox="0 0 36 34"[^>]*><path[^>]*d="M18 1 3 14h30L18 1Z"/, 'fixed selector points upward');
+    assert.match(css, /\.pcMarker\s*\{[^}]*bottom:\s*-17px;[^}]*width:\s*36px;[^}]*height:\s*34px/s, 'selector sits below center within the existing stage-to-button gap');
+    assert.match(css, /\.wwWon \.pcMarker\s*\{\s*opacity:\s*\.4;/, 'selector dims after reveal');
+    assert.match(css, /\.wwRarityHalo\s*\{[^}]*var\(--ww-halo-idle\)[^}]*var\(--ww-cross-alpha\)/s, 'rarity remains visible away from crossings');
+    assert.match(css, /\.wwPopcornBucketArt\s*\{[^}]*drop-shadow\(0 0 6px rgba\(var\(--ww-rarity-rgb\)/s, 'bucket rim carries the persistent rarity color');
+    assert.match(css, /\.wwPopcornBox\.wwNearbyLoser\s*\{\s*--ww-neighbor-y:\s*-8px;\s*opacity:\s*\.4;/, 'nearby losers get only a small lift and reduced emphasis');
+    assert.match(css, /\.wwSelectedBucket \.wwRarityHalo\s*\{\s*opacity:\s*var\(--ww-halo-lock\)/, 'winner gets the strongest rarity treatment');
     assert.match(js, /var winner = state\.items\[index\]/);
     const art = ['cinematic_popcorn_reveal_stage.png', 'popcorn-vector.svg', 'popcorn-kernel.svg'];
     const classicArt = 'classic-atmosphere.svg';
@@ -154,15 +161,27 @@ const nextFrame = async (e, now) => {
     reveal.els.wwSkin.value = 'popcorn';
     await reveal.fire('wwSkin', 'change');
     await reveal.fire('wwSpin');
+    await nextFrame(reveal, 0);
+    const travelBoxes = reveal.els.wwPopcornReel.children;
+    assert(travelBoxes.every(box => box.attrs['data-rarity'] === 'blue'), 'every travel bucket retains its mapped rarity');
+    assert(travelBoxes.some(box => Number(box.style['--ww-cross-alpha']) === 0), 'off-center rarity uses its persistent idle intensity');
+    assert(travelBoxes.some(box => Number(box.style['--ww-cross-alpha']) > 0), 'center crossing increases rarity intensity');
+    assert(travelBoxes.every(box => !box.classes.has('wwNearbyLoser')), 'loser lift waits for the lock');
     // Geometry is sampled during preparation, never during the animation loop.
     reveal.els.wwPopcornStage.getBoundingClientRect = () => { throw Error('layout read in animation'); };
     await nextFrame(reveal, 4220);
     assert(reveal.els.wwPopcornStage.classes.has('wwSettling'));
+    const lockedBoxes = reveal.els.wwPopcornReel.children;
+    assert(lockedBoxes.every(box => box.children.length === 2), 'bounded reel remains bucket and aura only');
+    assert(lockedBoxes[9].classes.has('wwSelectedBucket'), 'winner alone owns the selected bucket');
+    for (const i of [7, 8, 10, 11]) assert(lockedBoxes[i].classes.has('wwNearbyLoser'), `nearby loser ${i} acknowledges lock`);
+    assert.equal(lockedBoxes.filter(box => box.classes.has('wwNearbyLoser')).length, 4, 'only four neighbors lift');
     assert(reveal.els.pcwinnerCard.classes.has('wwPopcornPreparing'), 'winner waits for anticipation');
     await nextFrame(reveal, 4369);
     assert(reveal.els.pcwinnerCard.classes.has('wwPopcornPreparing'));
     await nextFrame(reveal, 4370);
     assert(reveal.els.wwPopcornStage.classes.has('wwRevealing'));
+    assert(lockedBoxes[8].classes.has('wwNearbyLoser'), 'losers remain visible during the bag-pop reveal');
     assert(!reveal.els.pcwinnerCard.classes.has('hidden'));
     assert(!reveal.audio.some(e => e.url.endsWith('winner-reveal.wav')), 'visual reveal starts before the delayed audio');
     const historyAtBurst = JSON.parse(reveal.saved[key]).history.length;
@@ -185,6 +204,7 @@ const nextFrame = async (e, now) => {
     repeated.els.wwSkin.value='popcorn'; await repeated.fire('wwSkin','change');
     for(let spin=0;spin<5;spin++) {
         await repeated.fire('wwSpin');
+        assert(repeated.els.wwPopcornReel.children.every(box => !box.classes.has('wwNearbyLoser')), 'new spin clears previous loser lift');
         for(let time=0;time<=4350;time+=100) await nextFrame(repeated,time);
         await nextFrame(repeated,4370); await nextFrame(repeated,4490); await nextFrame(repeated,5330);
         assert.equal(reelSize(repeated),15); assert.equal(repeated.els.wwPopcornBurst.children.length,22);
@@ -206,6 +226,7 @@ const nextFrame = async (e, now) => {
         e.els.wwSkin.value='classic'; await e.fire('wwSkin','change');
         while(e.frames.length) await nextFrame(e,10000);
         assert(e.els.pcwinnerCard.classes.has('hidden'), 'interruption clears prepared/revealing winner at '+time);
+        assert(e.els.wwPopcornReel.children.every(box => !box.classes.has('wwNearbyLoser')), 'interruption clears loser lift at '+time);
         if (time < 4490) assert(!e.audio.some(x=>x.url.endsWith('winner-reveal.wav')), 'interrupted spin cannot fire delayed reveal at '+time);
         assert(!e.page.classList.contains('wwPopcornRunning'));
         assert(!e.els.wwSpin.disabled);
