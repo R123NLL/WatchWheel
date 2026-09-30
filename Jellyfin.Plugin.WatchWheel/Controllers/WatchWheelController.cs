@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.WatchWheel.Models;
 using Jellyfin.Plugin.WatchWheel.Services;
@@ -21,6 +22,7 @@ public class WatchWheelController : ControllerBase
     private readonly CandidateService _candidateService;
     private readonly FilterService _filterService;
     private readonly WatcherService _watcherService;
+    private readonly TvUpdateService _tvUpdateService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WatchWheelController"/> class.
@@ -29,16 +31,19 @@ public class WatchWheelController : ControllerBase
     /// <param name="candidateService">Watch Wheel candidate service.</param>
     /// <param name="filterService">Watch Wheel filter service.</param>
     /// <param name="watcherService">Watcher profile and assignment service.</param>
+    /// <param name="tvUpdateService">Private TV update package service.</param>
     public WatchWheelController(
         IAuthorizationContext authorizationContext,
         CandidateService candidateService,
         FilterService filterService,
-        WatcherService watcherService)
+        WatcherService watcherService,
+        TvUpdateService tvUpdateService)
     {
         _authorizationContext = authorizationContext;
         _candidateService = candidateService;
         _filterService = filterService;
         _watcherService = watcherService;
+        _tvUpdateService = tvUpdateService;
     }
 
     /// <summary>
@@ -65,6 +70,40 @@ public class WatchWheelController : ControllerBase
         var resource = typeof(Plugin).Assembly.GetManifestResourceStream(
             "Jellyfin.Plugin.WatchWheel.Web.Assets." + asset);
         return resource is null ? NotFound() : File(resource, contentType);
+    }
+
+    /// <summary>Gets the currently published private WatchWheel TV update.</summary>
+    /// <returns>Validated update metadata, or 404 when no TV update is published.</returns>
+    [HttpGet("TvUpdate")]
+    public IActionResult GetTvUpdate()
+    {
+        try
+        {
+            var package = _tvUpdateService.GetCurrent();
+            return package is null ? NotFound() : Ok(package.Info);
+        }
+        catch (InvalidDataException error)
+        {
+            return Problem(error.Message, statusCode: 503, title: "TV update package is invalid");
+        }
+    }
+
+    /// <summary>Downloads the currently published private WatchWheel TV APK.</summary>
+    /// <returns>The validated APK file.</returns>
+    [HttpGet("TvUpdate/Apk")]
+    public IActionResult DownloadTvUpdateApk()
+    {
+        try
+        {
+            var package = _tvUpdateService.GetCurrent();
+            return package is null
+                ? NotFound()
+                : PhysicalFile(package.ApkPath, "application/vnd.android.package-archive", package.Info.Apk);
+        }
+        catch (InvalidDataException error)
+        {
+            return Problem(error.Message, statusCode: 503, title: "TV update package is invalid");
+        }
     }
 
     /// <summary>
