@@ -20,10 +20,7 @@ if [[ -z "$TOKEN" ]]; then
   echo "GitHub token file is empty: $TOKEN_FILE" >&2
   exit 3
 fi
-if [[ ! "$TOKEN" =~ ^[A-Za-z0-9_]+$ ]]; then
-  echo "GitHub token contains unexpected characters. Re-create the token file." >&2
-  exit 3
-fi
+
 
 for cmd in curl python3 sha256sum stat find sort mv mkdir mktemp install rm tail awk; do
   command -v "$cmd" >/dev/null 2>&1 || {
