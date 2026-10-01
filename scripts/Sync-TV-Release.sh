@@ -15,9 +15,13 @@ if [[ ! -f "$TOKEN_FILE" ]]; then
   exit 2
 fi
 
-TOKEN="$(<"$TOKEN_FILE")"
+TOKEN="$(tr -d '\r\n' < "$TOKEN_FILE")"
 if [[ -z "$TOKEN" ]]; then
   echo "GitHub token file is empty: $TOKEN_FILE" >&2
+  exit 3
+fi
+if [[ ! "$TOKEN" =~ ^[A-Za-z0-9_]+$ ]]; then
+  echo "GitHub token contains unexpected characters. Re-create the token file." >&2
   exit 3
 fi
 
@@ -48,24 +52,28 @@ cleanup() {
 }
 trap cleanup EXIT
 
+HEADER_FILE="$TMP/github.headers"
+{
+  printf 'Authorization: Bearer %s\n' "$TOKEN"
+  printf 'X-GitHub-Api-Version: 2022-11-28\n'
+  printf 'User-Agent: WatchWheel-TV-Sync\n'
+} > "$HEADER_FILE"
+chmod 600 "$HEADER_FILE"
+
 api_get() {
   local url="$1"
   local accept="$2"
   local output="$3"
 
-  # Feed sensitive headers via stdin so the token is not exposed in process args.
-  {
-    printf 'fail\n'
-    printf 'silent\n'
-    printf 'show-error\n'
-    printf 'location\n'
-    printf 'header = "Authorization: Bearer %s"\n' "$TOKEN"
-    printf 'header = "Accept: %s"\n' "$accept"
-    printf 'header = "X-GitHub-Api-Version: 2022-11-28"\n'
-    printf 'header = "User-Agent: WatchWheel-TV-Sync"\n'
-    printf 'url = "%s"\n' "$url"
-    printf 'output = "%s"\n' "$output"
-  } | curl --config -
+  curl \
+    --fail \
+    --silent \
+    --show-error \
+    --location \
+    --header "@$HEADER_FILE" \
+    --header "Accept: $accept" \
+    --output "$output" \
+    "$url"
 }
 
 RELEASE_JSON="$TMP/release.json"
