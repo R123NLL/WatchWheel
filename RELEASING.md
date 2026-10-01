@@ -1,27 +1,29 @@
-# Releasing Watch Wheel on GitHub
+# Releasing Watch Wheel
 
-The repository is prepared so a release can be published from any machine that has Git access to the repository. The release build itself runs on GitHub Actions.
+WatchWheel server/Web releases are public Jellyfin plugin releases. Android TV releases are private and follow the separate pipeline in `WatchWheel-TV-Next/TV_PIPELINE.md`.
 
-## One-time repository setup
+## Release safety rules
 
-1. Push this repository to GitHub.
-2. Make sure GitHub Actions are enabled for the repository.
-3. No API keys or repository secrets are required for the included release workflow; it uses GitHub's built-in workflow token.
+- `scripts/Build-Release.ps1` is the canonical plugin build.
+- Never deploy a DLL copied from `Jellyfin.Plugin.WatchWheel/bin/Release`.
+- Never overwrite a loaded Jellyfin plugin DLL in place.
+- Normal version upgrades are published through GitHub + the Jellyfin repository manifest.
+- `scripts/Deploy-Server-Safely.ps1` exists only for intentional same-version/test fallback deployment and requires Jellyfin to be stopped before the atomic replacement.
 
-## Before each release
+## Before each plugin release
 
 Update the version consistently in:
 
 - `Directory.Build.props`
 - `release.json`
 - `build.yaml`
-- the compatibility/version text in `README.md` and `INSTALL.md`
+- any compatibility/version text that is part of the release
 - `RELEASE_NOTES.md`
 - `CHANGELOG.md`
 
-The release script checks `AssemblyVersion`, `FileVersion`, and `release.json` for consistency. The GitHub release workflow also requires the Git tag to match `release.json` exactly.
+The release script checks `AssemblyVersion`, `FileVersion`, and `release.json` for consistency.
 
-## Validate locally (recommended)
+## Validate locally
 
 From the repository root:
 
@@ -29,61 +31,95 @@ From the repository root:
 .\scripts\Build-Release.ps1
 ```
 
-This runs the JavaScript reliability checks when Node.js is available, compiles the plugin, validates the assembly identity/version, creates `meta.json`, creates the release ZIP, and writes a SHA-256 file.
+The script:
 
-Expected output for this release:
+1. runs deterministic JavaScript checks when Node.js is available;
+2. runs `git diff --check` when Git is available;
+3. compiles a fresh non-incremental Release build into a temporary directory;
+4. validates the assembly identity/version;
+5. verifies WatchWheel remains unsigned (`PublicKeyToken=null`) with no malformed public-key metadata;
+6. creates `meta.json`;
+7. creates the canonical plugin ZIP;
+8. writes a SHA-256 file.
+
+Outputs:
 
 ```text
-artifacts/WatchWheel-1.0.2.0.zip
-artifacts/WatchWheel-1.0.2.0.zip.sha256
+artifacts/WatchWheel-<version>.zip
+artifacts/WatchWheel-<version>.zip.sha256
 ```
 
-## Commit and push
+## Commit/push
 
-Use your normal default branch name (`main`, `master`, etc.). Example:
-
-```bash
-git status
+```powershell
+git status --short
+git diff --check
 git add -A
-git commit -m "Release Watch Wheel 1.0.2.0"
+git commit -m "Release Watch Wheel <version>"
 git push origin main
 ```
 
-## Create the release
+## Publish the Git tag
 
-Create and push a tag that exactly matches `v` + the version in `release.json`:
-
-```bash
-git tag v1.0.2.0
-git push origin v1.0.2.0
-```
-
-Pushing the tag triggers `.github/workflows/release.yaml`. The workflow:
-
-1. checks that the tag matches `release.json`;
-2. installs .NET 9 and Node 22;
-3. runs `scripts/Build-Release.ps1`;
-4. creates a GitHub Release titled `Watch Wheel 1.0.2.0`;
-5. uses `RELEASE_NOTES.md` as the release body;
-6. uploads the plugin ZIP and SHA-256 file.
-
-GitHub also adds its normal source-code archives automatically. Users should install the `WatchWheel-<version>.zip` asset created by the workflow, not the source-code archive.
-
-## If the release workflow fails
-
-Do not reuse a mismatched tag. Fix the repository/version metadata, delete the failed remote tag if appropriate, then create the correct tag. Review the Actions log before publishing assets manually.
-
-## Manual fallback
-
-If GitHub Actions are unavailable, run:
+Use:
 
 ```powershell
-.\scripts\Build-Release.ps1
+.\scripts\Publish-Plugin-Tag.ps1
 ```
 
-Then create a GitHub Release manually for tag `v1.0.2.0` and upload:
+The script refuses a dirty repository, reruns the canonical release build, requires local HEAD to match its upstream, refuses a reused tag, creates `v<version>`, and pushes it.
 
-- `artifacts/WatchWheel-1.0.2.0.zip`
-- `artifacts/WatchWheel-1.0.2.0.zip.sha256`
+The existing `.github/workflows/release.yaml` workflow then builds the release again in GitHub Actions and creates the GitHub Release from the tagged commit.
 
-Use `RELEASE_NOTES.md` for the release description.
+## Publish the Jellyfin repository dependency
+
+Wait until the GitHub Release has been created. Then update the stable manifest from the **exact published release ZIP**:
+
+```powershell
+.\scripts\Update-Plugin-Manifest.ps1 -Channel stable
+```
+
+The script downloads `WatchWheel-<version>.zip` from the GitHub Release and computes the MD5 checksum required by the Jellyfin repository manifest from that exact asset. It then updates `manifest.json`.
+
+Review and publish the manifest:
+
+```powershell
+git diff -- manifest.json
+git add manifest.json
+git commit -m "Publish Watch Wheel <version> in stable manifest"
+git push origin main
+```
+
+Jellyfin installations using the WatchWheel repository can now discover/update to the new plugin version through the normal plugin dependency mechanism.
+
+For an opt-in test channel:
+
+```powershell
+.\scripts\Update-Plugin-Manifest.ps1 -Channel test -Tag v<version>-test
+```
+
+The tag supplied to `-Tag` must contain a published release asset named `WatchWheel-<release.json version>.zip`.
+
+## Manual same-version/test fallback
+
+Direct deployment should not be the normal version-upgrade path. When a same-version test/hotfix must be installed directly on a server:
+
+```powershell
+.\scripts\Deploy-Server-Safely.ps1 `
+  -Server user@server `
+  -RemotePluginDir "/path/to/Watch Wheel_<version>"
+```
+
+The script:
+
+1. extracts only the canonical release ZIP;
+2. validates DLL identity/version/public-key metadata;
+3. stages the DLL/meta outside the live plugin path;
+4. compares SHA-256 after upload;
+5. waits for you to STOP Jellyfin;
+6. refuses to continue if a Jellyfin process is still visible (unless explicitly overridden);
+7. backs up the existing files;
+8. uses atomic rename inside the plugin filesystem rather than copying over a loaded DLL;
+9. tells you to START Jellyfin and verify its startup log.
+
+This protects against Linux/.NET loader failures caused by replacing a DLL while the process still has it mapped.
